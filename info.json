@@ -1,0 +1,15 @@
+{
+    "name": "Constructron-2",
+    "version": "0.0.1",
+    "title": "Constructron 2",
+    "author": "ILLISIS & Karoschl",
+    "homepage": "https://github.com/ILLISIS/Constructron-2",
+    "description": "Construction Spidertrons that automatically construct, upgrade, deconstruct and repair anywhere on the map for the ultimate automation experience.",
+    "factorio_version": "1.1",
+    "dependencies": [
+        "base",
+        "? space-exploration",
+        "! Constructron",
+        "! Constructron-Continued"
+    ]
+}
