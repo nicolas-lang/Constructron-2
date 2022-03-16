@@ -12,7 +12,10 @@
         "log",
         "util",
         "table",
-        "serpent"
+        "serpent",
+        "circuit_connector_definitions",
+        "commands",
+        "remote"
     ],
     "Lua.diagnostics.disable": [
         "lowercase-global"
