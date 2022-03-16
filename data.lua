@@ -3,6 +3,9 @@ local service_station = require("__Constructron-2__.data.service-station.service
 data:extend(service_station)
 
 -- Generic Ctron stuff
+local pathing_proxy = require("__Constructron-2__.data.ctron-base.pathing-proxy")
+data:extend(pathing_proxy)
+
 local base_categories = require("__Constructron-2__.data.ctron-base.categories")
 data:extend(base_categories)
 
