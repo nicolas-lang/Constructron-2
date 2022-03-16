@@ -1,5 +1,6 @@
 local unlock = {
     "ctron-classic",
+    "ctron-steam-powered",
     "service-station",
     "ctron-buffer-chest"
 }
