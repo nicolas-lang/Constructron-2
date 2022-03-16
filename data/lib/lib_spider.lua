@@ -1,3 +1,5 @@
+-- luacheck: ignore
+-- passing luacheck requires refactoring of spidertron_animations, movement_triggers, sounds and hit_effects
 local hit_effects = require("__base__.prototypes.entity.hit-effects")
 local sounds = require("__base__.prototypes.entity.sounds")
 local movement_triggers = require("__base__.prototypes.entity.movement-triggers")

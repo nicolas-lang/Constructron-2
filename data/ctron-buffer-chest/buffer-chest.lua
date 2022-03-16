@@ -71,7 +71,7 @@ local medium_buffer_chest_entity = {
     },
     circuit_wire_connection_point = circuit_connector_definitions["chest"].points,
     circuit_connector_sprites = circuit_connector_definitions["chest"].sprites,
-    circuit_wire_max_distance = default_circuit_wire_max_distance,
+    circuit_wire_max_distance = default_circuit_wire_max_distance, -- luacheck: ignore
     open_sound = sounds.machine_open,
     close_sound = sounds.machine_close
 }

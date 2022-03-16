@@ -22,7 +22,7 @@ function Ctron_classic:new(entity)
 end
 
 -- Class Methods
-function Ctron_classic:setup_gear()
+function Ctron_classic:setup_gear() -- luacheck: ignore
     -- we do not want to use a gear template
 end
 

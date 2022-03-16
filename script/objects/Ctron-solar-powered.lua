@@ -60,8 +60,6 @@ function Ctron_solar_powered:tick_update()
                 end
             end
             self.entity.burner.remaining_burning_fuel = remaining_burning_fuel
-        else
-            --log("no energy in batteries")
         end
     end
 end

@@ -201,7 +201,7 @@ lib_equipment.equipment_templates = {
 
 function lib_equipment.make_equipment(template, params)
     if lib_equipment.equipment_templates[template] then
-        equipment = table.deepcopy(lib_equipment.equipment_templates[template])
+        local equipment = table.deepcopy(lib_equipment.equipment_templates[template])
         cust_lib.merge(equipment, params)
         return equipment
     end

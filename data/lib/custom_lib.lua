@@ -1,6 +1,6 @@
 local me = {}
 
-function string:split(inSplitPattern)
+function string:split(inSplitPattern) -- luacheck: ignore
     local outResults = {}
     local theStart = 1
     local theSplitStart, theSplitEnd = string.find(self, inSplitPattern, theStart)
