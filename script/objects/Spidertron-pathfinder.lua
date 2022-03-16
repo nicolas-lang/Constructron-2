@@ -1,11 +1,12 @@
-local debug_lib = require("__Constructron-2__.script.lib.debug_lib")
-local color_lib = require("__Constructron-2__.script.lib.color_lib")
+-- local debug_lib = require("__Constructron-2__.script.lib.debug_lib")
+-- local color_lib = require("__Constructron-2__.script.lib.color_lib")
 local control_lib = require("__Constructron-2__.script.lib.control_lib")
+local cust_lib = require("__Constructron-2__.data.lib.custom_lib")
 local collision_mask_util_extended = require("__Constructron-2__.script.lib.collision-mask-util-control")
 
 local Spidertron_Pathfinder = {
     clean_linear_path = false,
-    clean_path_steps = false,
+    clean_path_steps = true,
     clean_path_steps_distance = 5,
     -- how close do we need to get to the target
     radius = 1,
@@ -93,7 +94,7 @@ function Spidertron_Pathfinder:request_path(unit, goal)
     self:request_path2(unit, request_params)
 end
 
-function Spidertron_Pathfinder:request_path2(unit, request_params, retrys)
+function Spidertron_Pathfinder:request_path2(unit, request_params, request_obj)
     -- 1. Request with huge bounding box to avoid pathing near sketchy areas
     -- 2. Re-Request with normal  bounding box
     -- 3. Re-Request with tiny bounding box
@@ -128,23 +129,25 @@ function Spidertron_Pathfinder:request_path2(unit, request_params, retrys)
             low_priority = true
         }
     }
-    for k, v in pairs(request_params) do
-        request[k] = v
-    end
-
+    cust_lib.merge(request, request_params)
     local request_id = position.surface.request_path(request)
 
-    global.pathfinder_requests[request_id] = {
-        unit = unit,
-        request_tick = game.tick,
-        request_data = request,
-        retry = retrys or 0
-    }
+    request_obj =
+        request_obj or
+        {
+            unit = unit,
+            target = request_params.goal,
+            retry = 0
+        }
+    request_obj.request_tick = game.tick
+    request_obj.request = request
+
+    global.pathfinder_requests[request_id] = request_obj
 end
 
 function Spidertron_Pathfinder:on_script_path_request_finished(event)
-    local request = global.pathfinder_requests[event.id]
-    if request and request.unit then
+    local request_obj = global.pathfinder_requests[event.id]
+    if request_obj and request_obj.unit then
         local path = event.path
         if event.try_again_later then
             log("try_again_later")
@@ -158,7 +161,11 @@ function Spidertron_Pathfinder:on_script_path_request_finished(event)
             if self.clean_path_steps then
                 path = Spidertron_Pathfinder.clean_path_steps(path, self.clean_path_steps_distance)
             end
-            request.unit:set_autopilot(path)
+            table.insert(path, {position = {x = request_obj.target.x, y = request_obj.target.y}})
+            if self.clean_path_steps then
+                path = Spidertron_Pathfinder.clean_path_steps(path, 2.5)
+            end
+            request_obj.unit:set_autopilot(path)
         end
     end
     global.pathfinder_requests[event.id] = nil

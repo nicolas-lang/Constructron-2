@@ -1,4 +1,4 @@
-﻿local util = require("__core__.lualib.util")
+﻿--local util = require("__core__.lualib.util")
 local custom_lib = require("__Constructron-2__.data.lib.custom_lib")
 
 -- class Type Ctron, nil members exist just to describe fields
@@ -44,7 +44,6 @@ function Ctron:new(entity)
         global.constructrons.units[entity.unit_number] = entity
     else
         log("Ctron:entity invalid")
-        self = nil
     end
 end
 
@@ -106,14 +105,13 @@ function Ctron:destroy()
     global.constructrons.unit_registration[self.registration_id] = nil
     global.constructrons.units[self.unit_number] = nil
     global.constructrons.unit_status[self.unit_number] = nil
-    self = nil
 end
 
 function Ctron:is_valid()
     return (self.entity and self.entity.valid)
 end
 
-function Ctron:tick_update()
+function Ctron:tick_update() -- luacheck: ignore
 end
 
 function Ctron:setup_gear()
@@ -163,7 +161,7 @@ function Ctron:set_status(status)
         --log("set_status:set status to " .. status)
         local parsed_status
         if type(status) == "number" then
-            for name, value in pairs(Ctron.status) do
+            for _, value in pairs(Ctron.status) do
                 if value == status then
                     parsed_status = status
                 end
@@ -185,7 +183,7 @@ function Ctron:get_status_id()
     local status
     if self:is_valid() then
         status = global.constructrons.unit_status[self.unit_number]
-        for name, value in pairs(Ctron.status) do
+        for _, value in pairs(Ctron.status) do
             if value == status then
                 return value
             end
@@ -258,7 +256,7 @@ function Ctron:get_logistic_status()
             end
         end
         for _, inv in pairs({"fuel", "burnt_result", "spider_trash", "spider_trunk"}) do
-            items = self:get_inventory(inv)
+            local items = self:get_inventory(inv)
             for name, count in pairs(items) do
                 -- only care about items that are being handled by logistic requests
                 if request[name] then
@@ -281,7 +279,7 @@ function Ctron:set_request_items(request_items, item_whitelist)
         -- set limits to remove unwanted items from inventory
         item_whitelist = item_whitelist or {}
         for _, inv in pairs({"fuel", "burnt_result", "spider_trash", "spider_trunk"}) do
-            items = self:get_inventory(inv)
+            local items = self:get_inventory(inv)
             for item_name, _ in pairs(items) do
                 if not request_items[item_name] and not item_whitelist[item_name] then
                     request_items[item_name] = 0

@@ -50,7 +50,6 @@ end
 function Station:destroy()
     global.service_stations.entity_registration[self.registration_id] = nil
     global.service_stations.entities[self.unit_number] = nil
-    self = nil
 end
 
 function Station:is_valid()

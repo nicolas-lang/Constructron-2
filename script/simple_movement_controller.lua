@@ -12,7 +12,7 @@ local function table_length(tbl)
 end
 
 me.main = function(event)
-    local position, request
+    local request
     if event.tick % 120 == 0 then
         log("tick")
         local p1 = {
@@ -54,7 +54,7 @@ me.main = function(event)
 
                 if unit:get_status_name() == "requesting" then
                     log("Ctron.status.requesting")
-                    logistic_status = unit:get_logistic_status()
+                    local logistic_status = unit:get_logistic_status()
                     log("logistic_status: " .. serpent.block(logistic_status))
                     log("logistic_status: #" .. table_length(logistic_status))
                     if table_length(logistic_status) > 0 then
@@ -88,7 +88,7 @@ me.main = function(event)
         end
     end
     if event.tick % 480 == 0 then
-        for unit_number, unit in pairs(me.ctrons) do
+        for _, unit in pairs(me.ctrons) do
             if unit:is_valid() then
                 unit:tick_update()
             else
