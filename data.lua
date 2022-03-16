@@ -12,5 +12,11 @@ if true then
     data:extend(ctron_classic)
 end
 
+-- Ctron Buffer chest
+local ctron_buffer_chest = require("__Constructron-2__.data.ctron-buffer-chest.buffer-chest")
+if false then
+    data:extend(ctron_buffer_chest)
+end
+
 -- automatic simple tech unlock based on existing entities
 require("__Constructron-2__.data.technology.tech")

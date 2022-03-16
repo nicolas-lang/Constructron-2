@@ -1,5 +1,7 @@
 local unlock = {
     "ctron-classic",
+    "service-station",
+    "ctron-buffer-chest"
 }
 
 for _, name in pairs(unlock) do
