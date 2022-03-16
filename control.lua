@@ -371,6 +371,24 @@ local function on_entity_marked(event)
         log("registered entity for processing #" .. max_index + 1)
     end
 end
+
+--- Event handler on_entity_damaged
+-- @param event from factorio framework
+local function on_entity_damaged(event)
+    log("on_entity_damaged ")
+    local entity = event.entity
+    if entity and entity.valid then
+        if force == "player" and (event.final_health / (event.final_damage_amount + event.final_health)) < 0.95 then
+            if not global.entity_processing_queue[event.tick] then
+                global.entity_processing_queue[event.tick] = {}
+            end
+            local max_index = #(global.entity_processing_queue[event.tick])
+            global.entity_processing_queue[event.tick][max_index + 1] = entity
+            log("registered entity for processing #" .. max_index + 1)
+        end
+    end
+end
+
 --- Event handler on_entity_destroyed
 -- @param event from factorio framework
 local on_entity_destroyed = function(event)
@@ -441,6 +459,18 @@ script.on_event(
         ev.script_raised_destroy
     },
     on_entity_destroyed
+)
+
+script.on_event(
+    ev.on_entity_damaged,
+    on_entity_damaged,
+    {
+        {filter = "final-damage-amount", comparison = ">", value = 20, mode = "and"},
+        {filter = "final-health", comparison = ">", value = 0, mode = "and"},
+        {filter = "robot-with-logistics-interface", invert = true, mode = "and"},
+        {filter = "vehicle", invert = true, mode = "and"},
+        {filter = "rolling-stock", invert = true, mode = "and"}
+    }
 )
 
 script.on_event(ev.on_player_removed_equipment, on_player_removed_equipment)
