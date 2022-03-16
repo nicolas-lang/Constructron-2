@@ -81,7 +81,7 @@ local function process_chunk_queue()
     local c = 0
     local index = next(global.chunk_processing_queue)
     while index and c < 5 do
-        chunk_data = global.chunk_processing_queue[index]
+        local chunk_data = global.chunk_processing_queue[index]
         local filters = {
             {
                 filter = {
@@ -136,16 +136,6 @@ local function process_chunk_queue()
                     global.entity_processing_queue[game.tick][max_index + 1] = object
                 end
             end
-            local entities =
-                surface.find_tiles_filtered(
-                {
-                    area = {
-                        chunk_data.left_top,
-                        chunk_data.right_bottom
-                    },
-                    to_be_deconstructed = true
-                }
-            )
         end
         global.chunk_processing_queue[index] = nil
         index = next(global.chunk_processing_queue)
@@ -272,7 +262,7 @@ end
 --- main worker for entity pre-processing
 -- is expected to be scheduled to run every 20 ticks
 -- @param event from factorio framework
-local on_nth_tick_20 = function(event)
+local on_nth_tick_20 = function(_)
     log("on_nth_tick_20")
     if global.pause_processing then
         log("paused")
@@ -281,7 +271,7 @@ local on_nth_tick_20 = function(event)
     local has_worked
     has_worked = process_chunk_queue()
     if not has_worked then
-        has_worked = process_entity_queue()
+        process_entity_queue()
     end
 end
 
@@ -378,7 +368,7 @@ local function on_entity_damaged(event)
     log("on_entity_damaged ")
     local entity = event.entity
     if entity and entity.valid then
-        if force == "player" and (event.final_health / (event.final_damage_amount + event.final_health)) < 0.95 then
+        if event.force == "player" and (event.final_health / (event.final_damage_amount + event.final_health)) < 0.95 then
             if not global.entity_processing_queue[event.tick] then
                 global.entity_processing_queue[event.tick] = {}
             end
@@ -568,7 +558,7 @@ commands.add_command(
     "type /ctron rescan to queue all surfaces for a ghost rescan",
     function(param)
         log("/ctron")
-        local player = game.players[param.player_index]
+        --local player = game.players[param.player_index]
         if param.parameter then
             local command = param.parameter
             if command == "rescan" then
@@ -615,6 +605,9 @@ remote.add_interface(
         end,
         get_status_report = function(update)
             log("get_status_report")
+            if update then 
+                update_status_report()
+            end
             return global.status_report
         end
     }
