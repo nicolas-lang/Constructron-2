@@ -20,6 +20,14 @@ if true then
     data:extend(ctron_steam_powered_equipment)
 end
 
+-- Solar powered Ctron
+local ctron_solar_powered = require("__Constructron-2__.data.ctron-solar-powered.ctron")
+local ctron_solar_powered_equipment = require("__Constructron-2__.data.ctron-solar-powered.equipment")
+if true then
+    data:extend(ctron_solar_powered)
+    data:extend(ctron_solar_powered_equipment)
+end
+
 -- Nuclear powered Ctron
 local ctron_nuclear_powered = require("__Constructron-2__.data.ctron-nuclear-powered.ctron")
 local ctron_nuclear_powered_equipment = require("__Constructron-2__.data.ctron-nuclear-powered.equipment")
