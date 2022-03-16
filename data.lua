@@ -20,6 +20,14 @@ if true then
     data:extend(ctron_steam_powered_equipment)
 end
 
+-- Nuclear powered Ctron
+local ctron_nuclear_powered = require("__Constructron-2__.data.ctron-nuclear-powered.ctron")
+local ctron_nuclear_powered_equipment = require("__Constructron-2__.data.ctron-nuclear-powered.equipment")
+if true then
+    data:extend(ctron_nuclear_powered)
+    data:extend(ctron_nuclear_powered_equipment)
+end
+
 -- Ctron Buffer chest
 local ctron_buffer_chest = require("__Constructron-2__.data.ctron-buffer-chest.buffer-chest")
 if false then
