@@ -85,11 +85,11 @@ table.insert(ctron_solar_powered, ctron_solar_powered_battery_item)
 --equipment: legs x5
 for k, v in pairs(
     {
-        [1] = 0.1,
-        [2] = 0.5,
-        [3] = 0.9,
-        [4] = 1.3,
-        [5] = 1.7
+        [1] = 0.5,
+        [2] = 1.0,
+        [3] = 1.5,
+        [4] = 2.0,
+        [5] = 2.5
     }
 ) do
     table.insert(ctron_solar_powered, lib_equipment.make_equipment("item", {name = "ctron_solar_powered_leg-" .. k, placed_as_equipment_result = "ctron_solar_powered_leg-" .. k}))
@@ -100,6 +100,7 @@ for k, v in pairs(
             {
                 name = "ctron_solar_powered_leg-" .. k,
                 movement_bonus = v,
+                energy_consumption = (k * 2) .. "kW",
                 categories = {
                     "ctron-solar-powered-equipment",
                     "constructron-managed"
