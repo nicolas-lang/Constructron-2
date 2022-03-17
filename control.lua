@@ -17,6 +17,8 @@ local Ctron_nuclear_powered = require("__Constructron-2__.script.objects.Ctron-n
 -- Constructron Service Station
 local Station = require("__Constructron-2__.script.objects.Station")
 
+local Surface_manager = require("__Constructron-2__.script.objects.Surface-manager")
+
 -- Pathfinder
 local Spidertron_Pathfinder = require("__Constructron-2__.script.objects.Spidertron-pathfinder")
 
@@ -31,6 +33,7 @@ Ctron.pathfinder = Spidertron_Pathfinder()
 
 local ctrons = {}
 local stations = {}
+local surface_managers = {}
 
 simple_movement_controller.ctrons = ctrons
 -------------------------------------------------------------------------------
@@ -171,7 +174,11 @@ local function process_entity_queue()
                     else
                         -- surfacemanagers[entity.surface].process_entity(entity)
                         -- process it
-                        log("processed entity: " .. entity.unit_number .. " / " .. entity.type .. " / " .. entity.name)
+                        
+                        log("processed entity:")
+                        log(entity.type)
+                        log(entity.name)
+                        log(entity.unit_number)
                     end
                     c = c + 1
                 end
@@ -187,6 +194,30 @@ local function process_entity_queue()
     end
     return (c > 0)
 end
+
+--refacor: rename
+local function set_tech_unlock(tech_name)
+    for n in (tech_name):gmatch("ctron%-exoskeleton%-equipment%-(%d+)") do
+        game.print("unlocked spider movement_research " .. n)
+        Ctron.movement_research = tonumber(n)
+        for _, unit in pairs(ctrons) do
+            unit:setup_gear()
+        end
+    end
+end
+
+--refacor: rename
+local function process_tech_unlock()
+    -- ToDo Multiple forces
+    for _, force in pairs(game.forces) do
+        for _, tech in pairs(force.technologies) do
+            if tech.researched and string.find(tech.name, "ctron%-exoskeleton%-equipment%-") then
+                set_tech_unlock(tech.name)
+            end
+        end
+    end
+end
+
 --- Creates a Status Report on *things*.
 -- @returns report table object
 -- @see interface:get_status_report
@@ -249,6 +280,7 @@ local on_init = function()
     Ctron.init_globals()
     Station.init_globals()
     Spidertron_Pathfinder.init_globals()
+    Surface_manager.init_globals()
     global.entity_processing_queue = global.entity_processing_queue or {}
     global.chunk_processing_queue = global.chunk_processing_queue or {}
     global.status_report = global.status_report or {}
@@ -294,10 +326,21 @@ end
 -- on_tick will be unscheduled
 -- schedules on_nth_tick_120
 -- @param event from factorio framework
-local on_tick_once = function(event)
+local on_tick_once = function(_)
     log("on_tick_once")
     Ctron.init_managed_gear()
     Spidertron_Pathfinder.check_pathfinder_requests_timeout()
+    process_tech_unlock()
+
+    for _, g_surface in pairs(global.Surface_managers) do
+        local surface = game.surfaces[g_surface.surface_id]
+        if surface and surface.valid then
+            surface_managers[surface.index] = Surface_manager(surface)
+        else
+            surface_managers[g_surface.id] = nil
+        end
+    end
+
     for unit_number, entity in pairs(global.constructrons.units) do
         if entity and entity.valid then
             if not ctrons[unit_number] then
@@ -414,6 +457,22 @@ local on_player_removed_equipment = function(event)
     end
 end
 
+local on_research_finished = function(event)
+    if event and event.research then
+        set_tech_unlock(event.research.name)
+    end
+end
+
+local function on_surface_created(event)
+    local surface = event.surface
+    if surface and surface.valid then
+        surface_managers[surface.index] = Surface_manager(surface)
+    end
+end
+local function on_surface_deleted(event)
+    local surface = event.surface
+    surface_managers[surface.index] = nil
+end
 -------------------------------------------------------------------------------
 -- event registration
 -------------------------------------------------------------------------------
@@ -467,25 +526,25 @@ script.on_event(ev.on_player_removed_equipment, on_player_removed_equipment)
 
 script.on_event(
     ev.on_marked_for_upgrade,
-    on_entity_marked -- TODO: add filter to ignore vehicles and trains
+    on_entity_marked, {
+        {filter = "vehicle", invert = true, mode = "and"},
+        {filter = "rolling-stock", invert = true, mode = "and"}
+    }
 )
 
 script.on_event(
     ev.on_marked_for_deconstruction,
     on_entity_marked,
     {
-        {
-            filter = "name",
-            name = "item-on-ground",
-            invert = true
-        }
-        -- TODO: add filter to ignore deconstructing vehicles and trains
+        {filter = "name", name = "item-on-ground", invert = true, mode = "and"}
     }
 )
---[[
-script.on_event(ev.on_surface_created, ctron.on_surface_created)
-script.on_event(ev.on_surface_deleted, ctron.on_surface_deleted)
-script.on_event(ev.on_entity_cloned, ctron.on_entity_cloned)
+
+script.on_event(ev.on_research_finished, on_research_finished)
+
+script.on_event(ev.on_surface_created, on_surface_created)
+script.on_event(ev.on_surface_deleted, on_surface_deleted)
+--[[script.on_event(ev.on_entity_cloned, ctron.on_entity_cloned)
 
 script.on_event(ev.on_post_entity_died, ctron.on_post_entity_died)
 --]]
@@ -605,7 +664,7 @@ remote.add_interface(
         end,
         get_status_report = function(update)
             log("get_status_report")
-            if update then 
+            if update then
                 update_status_report()
             end
             return global.status_report
