@@ -42,6 +42,49 @@ local constructron_grid = {
 }
 table.insert(ctron_solar_powered, constructron_grid)
 
+local lightning_smoke_animation = {
+    layers = {
+        {
+            draw_as_glow = true,
+            filename = "__base__/graphics/entity/accumulator/accumulator-charge.png",
+            frame_count = 24,
+            height = 100,
+            hr_version = {
+                draw_as_glow = true,
+                filename = "__base__/graphics/entity/accumulator/hr-accumulator-charge.png",
+                frame_count = 24,
+                height = 206,
+                line_length = 6,
+                priority = "high",
+                scale = 0.5,
+                shift = {0, 0},
+                width = 178
+            },
+            line_length = 6,
+            priority = "high",
+            shift = {0, -0},
+            width = 90
+        }
+    }
+}
+local lightning_smoke = {
+    affected_by_wind = false,
+    animation = lightning_smoke_animation,
+    color = {a = 1, b = 1, g = 0.8, r = 0.9},
+    cyclic = true,
+    duration = 10,
+    end_scale = 2.0,
+    fade_away_duration = 5,
+    fade_in_duration = 0,
+    name = "lightning-smoke",
+    spread_duration = 5,
+    start_scale = 0.5,
+    type = "trivial-smoke",
+    movement_slow_down_factor = 1
+}
+
+table.insert(ctron_solar_powered, lightning_smoke)
+
 -- entity definition
 local spidertron_definition = {
     name = "ctron-solar-powered",
@@ -90,10 +133,18 @@ local spidertron_definition = {
         fuel_inventory_size = 1,
         fuel_category = "constructron-solar-fuel",
         effectivity = 1,
-        render_no_power_icon = false,
-        light_flicker = {
-            color = {0.5, 0.5, 1},
-            minimum_light_size = 3
+        render_no_power_icon = true,
+        smoke = {
+            {
+                name = "lightning-smoke",
+                deviation = {0.25, 0.25},
+                frequency = 50,
+                position = {0, 0},
+                starting_frame = 0,
+                starting_frame_deviation = 60,
+                height = 1,
+                height_deviation = 0.5
+            }
         }
     }
 }
