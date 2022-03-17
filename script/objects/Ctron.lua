@@ -14,7 +14,8 @@ local Ctron = {
     gear = {},
     managed_equipment = {},
     managed_equipment_cols = 0,
-    last_status_update_tick = 0
+    last_status_update_tick = 0,
+    movement_research = 1
 }
 Ctron.__index = Ctron
 
@@ -114,6 +115,11 @@ end
 function Ctron:tick_update() -- luacheck: ignore
 end
 
+function Ctron:parse_gear_name(name)
+    name = string.gsub(name, "{movement_research}", tostring(self.movement_research))
+    return name
+end
+
 function Ctron:setup_gear()
     log("setup_gear")
     if self:is_valid() and #(self.gear) > 0 then
@@ -132,6 +138,16 @@ function Ctron:setup_gear()
              then
                 remove = true
             end
+            --remove gear with  incorrect tier
+            local found = false
+            for _, equipment in pairs(self.gear) do
+                if self:parse_gear_name(equipment) == equipment.name then
+                    found = true
+                end
+            end
+            if found == false then
+                remove = true
+            end
             if remove then
                 equipment_grid.take(
                     {
@@ -146,6 +162,7 @@ function Ctron:setup_gear()
         -- insert  missing gear
         local equipment_count = equipment_grid.get_contents()
         for _, equipment in pairs(self.gear) do
+            equipment = self:parse_gear_name(equipment)
             if not equipment_count[equipment] then
                 equipment_grid.put {
                     name = equipment,

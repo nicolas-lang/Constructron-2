@@ -5,7 +5,7 @@ local Ctron_solar_powered = {
     gear = {
         "ctron-solar-powered-roboport-equipment",
         "ctron-solar-panel-equipment",
-        "ctron_solar_powered_leg-1",
+        "ctron_solar_powered_leg-{movement_research}",
         "ctron-solar-powered-battery-equipment"
     },
     managed_equipment_cols = 4,

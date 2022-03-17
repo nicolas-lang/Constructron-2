@@ -45,5 +45,7 @@ if true then
     data:extend(ctron_buffer_chest)
 end
 
--- automatic simple tech unlock based on existing entities
-require("__Constructron-2__.data.technology.tech")
+if true then
+    local tech = require("__Constructron-2__.data.technology.tech")
+    data:extend(tech)
+end
