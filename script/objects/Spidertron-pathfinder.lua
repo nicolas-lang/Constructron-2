@@ -10,7 +10,8 @@ local Spidertron_Pathfinder = {
     clean_path_steps_distance = 5,
     -- how close do we need to get to the target
     radius = 1,
-    path_resolution_modifier = -2
+    path_resolution_modifier = -2,
+    initial_bounding_box = {{-5, -5}, {5, 5}}
 }
 
 Spidertron_Pathfinder.__index = Spidertron_Pathfinder
@@ -53,7 +54,7 @@ function Spidertron_Pathfinder.clean_linear_path(path)
         if i >= 2 and i < #path then
             local prev_angle = math.atan2(waypoint.position.y - path[i - 1].position.y, waypoint.position.x - path[i - 1].position.x)
             local next_angle = math.atan2(path[i + 1].position.y - waypoint.position.y, path[i + 1].position.x - waypoint.position.x)
-            if math.abs(prev_angle - next_angle) > 0.01 then
+            if math.abs(prev_angle - next_angle) > 0.005 then
                 table.insert(new_path, waypoint)
             end
         else
@@ -88,23 +89,31 @@ function Spidertron_Pathfinder.clean_path_steps(path, min_distance)
     --log("new_path" .. serpent.block(new_path))
     return new_path
 end
-
-function Spidertron_Pathfinder:request_path(unit, goal)
-    local request_params = {goal = goal}
-    self:request_path2(unit, request_params)
+function Spidertron_Pathfinder:find_non_colliding_position(surface, position)
+    for _, param in pairs(
+        {
+            {size = 12, radius = 8},
+            {size = 8, radius = 8},
+            {size = 6, radius = 8},
+            {size = 4, radius = 8},
+            {size = 2, radius = 8},
+            {size = 1, radius = 32}
+        }
+    ) do
+        local new_position = surface.find_non_colliding_position("constructron_pathing_proxy_" .. param.size, position, param.radius, 0.5, false)
+        if new_position then
+            return new_position
+        end
+    end
 end
 
-function Spidertron_Pathfinder:request_path2(unit, request_params, request_obj)
-    -- 1. Request with huge bounding box to avoid pathing near sketchy areas
-    -- 2. Re-Request with normal  bounding box
-    -- 3. Re-Request with tiny bounding box
-    -- 4. Re-Request with increased radius (just for this try)
-    -- 5. find_non_colliding_positions and Re-Request
-    -- 6. Re-Request with even more increased radius again
-    -- 7. f*ck it... just try to walk there in a straight line
+function Spidertron_Pathfinder:request_path(unit, goal)
+    local request_params = {unit = unit, goal = goal}
+    self:request_path2(request_params)
+end
 
-    -- new_start = surface.find_non_colliding_position(pathfinding_proxy_entity_name, spidertron.position, 32, 0.1, false)
-    -- new_goal = surface.find_non_colliding_position(pathfinding_proxy_entity_name, goal, 32, 0.1, false)
+function Spidertron_Pathfinder:request_path2(request_params)
+    log("request_path2")
     local pathing_collision_mask = {"water-tile", "consider-tile-transitions", "colliding-with-tiles-only"}
     if game.active_mods["space-exploration"] then
         local spaceship_collision_layer = collision_mask_util_extended.get_named_collision_mask("moving-tile")
@@ -112,48 +121,79 @@ function Spidertron_Pathfinder:request_path2(unit, request_params, request_obj)
         table.insert(pathing_collision_mask, spaceship_collision_layer)
         table.insert(pathing_collision_mask, empty_space_collision_layer)
     end
-
-    unit:set_autopilot({})
-    local position = unit:get_position()
     request_params = request_params or {}
-    local request = {
-        bounding_box = {{-0.25, -0.25}, {0.25, 0.25}},
-        collision_mask = pathing_collision_mask,
-        start = position.position,
-        goal = nil,
-        force = unit.force,
-        radius = self.radius,
-        path_resolution_modifier = self.path_resolution_modifier,
-        pathfinding_flags = {
-            cache = true,
-            low_priority = true
+    local unit = request_params.unit -- object-type: CTron
+    if unit then
+        unit:set_autopilot({})
+        local position = unit:get_position()
+        local request = {
+            unit = nil, -- not used by the factorio-pathfinder
+            surface = position.surface, -- not used by the factorio-pathfinder
+            -- 1st Request: use huge bounding box to avoid pathing near sketchy areas
+            bounding_box = self.initial_bounding_box,
+            collision_mask = pathing_collision_mask,
+            start = position.position,
+            goal = nil,
+            force = unit.force,
+            radius = self.radius,
+            path_resolution_modifier = self.path_resolution_modifier,
+            pathfinding_flags = {
+                cache = true,
+                low_priority = true
+            },
+            retry = 0, -- not used by the factorio-pathfinder
+            try_again_later = 0 -- not used by the factorio-pathfinder
         }
-    }
-    cust_lib.merge(request, request_params)
-    local request_id = position.surface.request_path(request)
+        cust_lib.merge(request, request_params)
+        request.initial_target = request.initial_target or request.goal -- not used by the factorio-pathfinder
+        request.request_tick = game.tick -- not used by the factorio-pathfinder
 
-    request_obj =
-        request_obj or
-        {
-            unit = unit,
-            target = request_params.goal,
-            retry = 0
-        }
-    request_obj.request_tick = game.tick
-    request_obj.request = request
-
-    global.pathfinder_requests[request_id] = request_obj
+        log("new pathign request" .. serpent.block(request))
+        local request_id = position.surface.request_path(request)
+        global.pathfinder_requests[request_id] = request
+    end
 end
 
 function Spidertron_Pathfinder:on_script_path_request_finished(event)
-    local request_obj = global.pathfinder_requests[event.id]
-    if request_obj and request_obj.unit then
+    local request = global.pathfinder_requests[event.id]
+    if request and request.unit then
         local path = event.path
         if event.try_again_later then
-            log("try_again_later")
+            if request.try_again_later < 5 then
+                log("try_again_later")
+                request.request_tick = game.tick
+                request.try_again_later = request.try_again_later + 1
+                self:request_path2(request)
+            else
+                log("try_again_later: ABORTED, to many retrys")
+            end
         elseif not path then
-            -- ToDo re-Request path
-            log("pathfinder callback: path nil")
+            if request.retry < 6 then
+                if request.retry == 1 then
+                    -- 2. Re-Request with normal  bounding box
+                    request.bounding_box = {{-1, -1}, {1, 1}}
+                elseif request.retry == 2 then
+                    -- 3. Re-Request with tiny bounding box
+                    request.bounding_box = {{-0.015, -0.015}, {0.015, 0.015}} -- leg collision_box = {{-0.01, -0.01}, {0.01, 0.01}},
+                elseif request.retry == 3 then
+                    -- 4. Re-Request with increased radius (just for this try)
+                    request.radius = 5
+                elseif request.retry == 4 then
+                    request.radius = self.radius
+                    -- 5. find_non_colliding_positions and Re-Request
+                    request.start = self:find_non_colliding_position(request.start) or request.start
+                    request.goal = self:find_non_colliding_position(request.start) or request.goal
+                elseif request.retry == 5 then
+                    -- 6. Re-Request with even more increased radius again
+                    request.radius = 10
+                end
+                request.retry = request.retry + 1
+                request.request_tick = game.tick
+                self:request_path2(request)
+            else
+                -- 7. f*ck it... just try to walk there in a straight line
+                request.unit:set_autopilot({{position = {x = request.initial_target.x, y = request.initial_target.y}}})
+            end
         else
             if self.clean_linear_path then
                 path = Spidertron_Pathfinder.clean_linear_path(path)
@@ -161,11 +201,12 @@ function Spidertron_Pathfinder:on_script_path_request_finished(event)
             if self.clean_path_steps then
                 path = Spidertron_Pathfinder.clean_path_steps(path, self.clean_path_steps_distance)
             end
-            table.insert(path, {position = {x = request_obj.target.x, y = request_obj.target.y}})
+            table.insert(path, {position = {x = request.initial_target.x, y = request.initial_target.y}})
             if self.clean_path_steps then
                 path = Spidertron_Pathfinder.clean_path_steps(path, 2.5)
             end
-            request_obj.unit:set_autopilot(path)
+            log(serpent.block(request.request))
+            request.unit:set_autopilot(path)
         end
     end
     global.pathfinder_requests[event.id] = nil
