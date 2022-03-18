@@ -3,10 +3,9 @@
 local hit_effects = require("__base__.prototypes.entity.hit-effects")
 local sounds = require("__base__.prototypes.entity.sounds")
 local movement_triggers = require("__base__.prototypes.entity.movement-triggers")
-local spidertron_animations = require("__base__.prototypes.entity.spidertron-animations")
 
 local lib_spider = {}
-
+lib_spider.spidertron_animations = require("__Constructron-2__.data.lib.lib_spider_animations")
 lib_spider.default_legs = {
     -- right side
     {
@@ -189,7 +188,7 @@ function lib_spider.create_spidertron(arguments)
         torso_rotation_speed = 0.005,
         chunk_exploration_radius = 3,
         selection_priority = 51,
-        graphics_set = spidertron_torso_graphics_set(scale),
+        graphics_set = lib_spider.spidertron_animations.spidertron_torso_graphics_set(scale),
         energy_source = energy_source,
         burner = burner,
         movement_energy_consumption = movement_energy_consumption,
@@ -208,6 +207,36 @@ function lib_spider.create_spidertron(arguments)
     return entity
 end
 
+function lib_spider.make_spidertron_leg(spidertron_name, scale, leg_thickness, movement_speed, number, base_sprite, ending_sprite)
+    return
+    {
+      type = "spider-leg",
+      name = spidertron_name .. "-leg-" .. number,
+  
+      localised_name = {"entity-name.spidertron-leg"},
+      collision_box = {{-0.05, -0.05}, {0.05, 0.05}},
+      selection_box = {{-0.5, -0.5}, {0.5, 0.5}},
+      icon = "__base__/graphics/icons/spidertron.png",
+      icon_size = 64, icon_mipmaps = 4,
+      walking_sound_volume_modifier = 0.6,
+      target_position_randomisation_distance = 0.25 * scale,
+      minimal_step_size = 1 * scale,
+      working_sound =
+      {
+        match_progress_to_activity = true,
+        sound = sounds.spidertron_leg,
+        audible_distance_modifier = 0.5
+      },
+      part_length = 3.5 * scale,
+      initial_movement_speed = 0.06 * movement_speed,
+      movement_acceleration = 0.03 * movement_speed,
+      max_health = 100,
+      movement_based_position_selection_distance = 4 * scale,
+      selectable_in_game = false,
+      graphics_set = lib_spider.spidertron_animations.create_spidertron_leg_graphics_set(scale * leg_thickness, number)
+    }
+  end
+
 function lib_spider.create_spidertron_legs(arguments)
     local legs = arguments.legs or lib_spider.default_legs
     local scale = arguments.scale or 1
@@ -222,7 +251,7 @@ function lib_spider.create_spidertron_legs(arguments)
             custom_scale = leg_details.scale
             custom_leg_thickness = 1 / custom_scale * leg_thickness
         end
-        local leg = make_spidertron_leg(arguments.name, (custom_scale or leg_scale), (custom_leg_thickness or leg_thickness), leg_movement_speed, x)
+        local leg = lib_spider.make_spidertron_leg(arguments.name, (custom_scale or leg_scale), (custom_leg_thickness or leg_thickness), leg_movement_speed, x)
         table.insert(leg_entities, leg)
     end
     return leg_entities
