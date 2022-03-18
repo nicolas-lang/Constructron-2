@@ -86,36 +86,11 @@ local function process_chunk_queue()
     while index and c < 5 do
         local chunk_data = global.chunk_processing_queue[index]
         local filters = {
-            {
-                filter = {
-                    type = "entity-ghost"
-                },
-                type = "entity"
-            },
-            {
-                filter = {
-                    type = "tile-ghost"
-                },
-                type = "entity"
-            },
-            {
-                filter = {
-                    to_be_deconstructed = true
-                },
-                type = "entity"
-            },
-            {
-                filter = {
-                    to_be_upgraded = true
-                },
-                type = "entity"
-            },
-            {
-                filter = {
-                    to_be_deconstructed = true
-                },
-                type = "tile"
-            }
+            {type = "entity", filter = {type = "entity-ghost"}},
+            {type = "entity", filter = {type = "tile-ghost"}},
+            {type = "entity", filter = {to_be_deconstructed = true}},
+            {type = "entity", filter = {to_be_upgraded = true}},
+            {type = "tile", filter = {to_be_deconstructed = true}}
         }
         if not global.entity_processing_queue[game.tick] then
             global.entity_processing_queue[game.tick] = {}
@@ -174,7 +149,6 @@ local function process_entity_queue()
                     else
                         -- surfacemanagers[entity.surface].process_entity(entity)
                         -- process it
-                        
                         log("processed entity:")
                         log(entity.type)
                         log(entity.name)
@@ -526,7 +500,8 @@ script.on_event(ev.on_player_removed_equipment, on_player_removed_equipment)
 
 script.on_event(
     ev.on_marked_for_upgrade,
-    on_entity_marked, {
+    on_entity_marked,
+    {
         {filter = "vehicle", invert = true, mode = "and"},
         {filter = "rolling-stock", invert = true, mode = "and"}
     }
