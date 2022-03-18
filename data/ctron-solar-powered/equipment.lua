@@ -34,7 +34,7 @@ local ctron_solar_powered_roboport =
         name = "ctron-solar-powered-roboport-equipment",
         charging_station_count = 20,
         energy_source = {
-            buffer_capacity = "35MJ",
+            buffer_capacity = "5MJ",
             input_flow_limit = "7500KW"
         },
         robot_limit = 20,
@@ -62,7 +62,7 @@ local ctron_solar_powered_battery_equipment =
     "battery",
     {
         name = "ctron-solar-powered-battery-equipment",
-        energy_source = {buffer_capacity = "5MJ"},
+        energy_source = {buffer_capacity = "4MJ"},
         categories = {
             "ctron-solar-powered-equipment",
             "constructron-managed"
@@ -100,7 +100,7 @@ for k, v in pairs(
             {
                 name = "ctron_solar_powered_leg-" .. k,
                 movement_bonus = v,
-                energy_consumption = (k * 2) .. "kW",
+                energy_consumption = (k * 3) .. "kW",
                 categories = {
                     "ctron-solar-powered-equipment",
                     "constructron-managed"
