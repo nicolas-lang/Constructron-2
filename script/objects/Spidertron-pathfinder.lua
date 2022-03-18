@@ -9,6 +9,7 @@ local Spidertron_Pathfinder = {
     clean_path_steps = true,
     clean_path_steps_distance = 5,
     -- how close do we need to get to the target
+    non_colliding_position_accuracy = 0.5,
     radius = 1,
     path_resolution_modifier = -2,
     initial_bounding_box = {{-5, -5}, {5, 5}}
@@ -100,7 +101,7 @@ function Spidertron_Pathfinder:find_non_colliding_position(surface, position)
             {size = 1, radius = 32}
         }
     ) do
-        local new_position = surface.find_non_colliding_position("constructron_pathing_proxy_" .. param.size, position, param.radius, 0.5, false)
+        local new_position = surface.find_non_colliding_position("constructron_pathing_proxy_" .. param.size, position, param.radius, self.non_colliding_position_accuracy, false)
         if new_position then
             return new_position
         end
