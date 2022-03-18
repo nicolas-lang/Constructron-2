@@ -140,8 +140,8 @@ function Ctron:setup_gear()
             end
             --remove gear with  incorrect tier
             local found = false
-            for _, equipment in pairs(self.gear) do
-                if self:parse_gear_name(equipment) == equipment.name then
+            for _, expected_equipment in pairs(self.gear) do
+                if self:parse_gear_name(expected_equipment) == equipment.name then
                     found = true
                 end
             end
