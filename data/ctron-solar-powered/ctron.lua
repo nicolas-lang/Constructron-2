@@ -1,4 +1,5 @@
 local lib_spider = require("__Constructron-2__.data.lib.lib_spider")
+lib_spider.spidertron_animations.image_base = "__Constructron-2__/graphics/constructron/mk3-blue/"
 
 local ctron_solar_powered = {}
 
@@ -137,8 +138,8 @@ local spidertron_definition = {
         smoke = {
             {
                 name = "lightning-smoke",
-                deviation = {0.25, 0.25},
-                frequency = 50,
+                deviation = {0.5, 0.5},
+                frequency = 75,
                 position = {0, 0},
                 starting_frame = 0,
                 starting_frame_deviation = 60,

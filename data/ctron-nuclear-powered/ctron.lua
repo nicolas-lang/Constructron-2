@@ -1,4 +1,5 @@
 local lib_spider = require("__Constructron-2__.data.lib.lib_spider")
+lib_spider.spidertron_animations.image_base = "__Constructron-2__/graphics/constructron/prototype-green/"
 
 local ctron_nuclear_powered = {}
 
@@ -91,6 +92,12 @@ local spidertron_definition = {
 
 -- spidertron "torso"
 local constructron = lib_spider.create_spidertron(spidertron_definition)
+constructron.graphics_set.light[1] = {
+	color = {0.3, 1, 0.3},
+	intensity = 0.6,
+	minimum_darkness = 0.3,
+	size = 25
+}
 table.insert(ctron_nuclear_powered, constructron)
 
 -- spidertron "legs"
