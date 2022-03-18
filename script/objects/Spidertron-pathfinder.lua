@@ -148,7 +148,7 @@ function Spidertron_Pathfinder:request_path2(request_params)
         request.initial_target = request.initial_target or request.goal -- not used by the factorio-pathfinder
         request.request_tick = game.tick -- not used by the factorio-pathfinder
 
-        log("new pathign request" .. serpent.block(request))
+        --log("new pathign request" .. serpent.block(request))
         local request_id = position.surface.request_path(request)
         global.pathfinder_requests[request_id] = request
     end
@@ -173,11 +173,11 @@ function Spidertron_Pathfinder:on_script_path_request_finished(event)
                     -- 2. Re-Request with normal  bounding box
                     request.bounding_box = {{-1, -1}, {1, 1}}
                 elseif request.retry == 2 then
-                    -- 3. Re-Request with tiny bounding box
-                    request.bounding_box = {{-0.015, -0.015}, {0.015, 0.015}} -- leg collision_box = {{-0.01, -0.01}, {0.01, 0.01}},
-                elseif request.retry == 3 then
                     -- 4. Re-Request with increased radius (just for this try)
                     request.radius = 5
+                elseif request.retry == 3 then
+                    -- 3. Re-Request with tiny bounding box
+                    request.bounding_box = {{-0.015, -0.015}, {0.015, 0.015}} -- leg collision_box = {{-0.01, -0.01}, {0.01, 0.01}},
                 elseif request.retry == 4 then
                     request.radius = self.radius
                     -- 5. find_non_colliding_positions and Re-Request
@@ -205,7 +205,7 @@ function Spidertron_Pathfinder:on_script_path_request_finished(event)
             if self.clean_path_steps then
                 path = Spidertron_Pathfinder.clean_path_steps(path, 2.5)
             end
-            log(serpent.block(request.request))
+            --log(serpent.block(request.request))
             request.unit:set_autopilot(path)
         end
     end
