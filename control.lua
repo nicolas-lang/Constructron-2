@@ -33,7 +33,7 @@ Ctron.pathfinder = Spidertron_Pathfinder()
 
 local ctrons = {}
 local stations = {}
-local surface_managers = {}
+local surface_managers = {} -- luacheck: ignore
 
 simple_movement_controller.ctrons = ctrons
 -------------------------------------------------------------------------------
