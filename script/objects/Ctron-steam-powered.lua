@@ -2,6 +2,7 @@ local Ctron = require("__Constructron-2__.script.objects.Ctron")
 
 -- class Type Ctron_steam_powered, nil members exist just to describe fields
 local Ctron_steam_powered = {
+    class_name = "Ctron_steam_powered",
     gear = {
         "ctron-steam-powered-roboport-equipment",
         "ctron-steam-powered-reactor-equipment",
@@ -9,7 +10,7 @@ local Ctron_steam_powered = {
         "ctron-steam-powered-battery-equipment"
     },
     managed_equipment_cols = 4,
-    fuel = "rocket-fuel",
+    fuel = "coal",
     fuel_count = 20,
     robots = 5
 }

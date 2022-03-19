@@ -3,6 +3,7 @@ local custom_lib = require("__Constructron-2__.data.lib.custom_lib")
 
 -- class Type Ctron, nil members exist just to describe fields
 local Ctron = {
+    class_name = "Ctron",
     -- <base game spidertron entity unit_number used as PK for everything>
     unit_number = nil,
     -- <base game spidertron entity>

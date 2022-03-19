@@ -1,5 +1,6 @@
 -- class Type Station, nil members exist just to describe fields
 local Station = {
+    class_name = "Station",
     -- <base game spidertron entity unit_number used as PK for everything>
     unit_number = nil,
     -- <base game spidertron entity>
