@@ -58,6 +58,7 @@ function lib_spider.create_spidertron(arguments)
     local mining_result = arguments.name or "spidertron"
     local burner = arguments.burner
     local energy_source = arguments.energy_source
+    local allow_passengers = arguments.allow_passengers or true
     if not burner and not energy_source then
         energy_source = {
             type = "void"
@@ -183,6 +184,7 @@ function lib_spider.create_spidertron(arguments)
         guns = guns,
         inventory_size = inventory_size,
         equipment_grid = grid,
+        allow_passengers = allow_passengers,
         trash_inventory_size = trash_inventory_size,
         height = 1.5 * scale * leg_scale,
         torso_rotation_speed = 0.005,
