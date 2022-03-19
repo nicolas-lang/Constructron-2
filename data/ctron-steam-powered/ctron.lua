@@ -60,6 +60,7 @@ local spidertron_definition = {
         burnt_inventory_size = 2,
         fuel_category = "chemical",
         effectivity = 0.5,
+        emissions_per_minute = 100,
         smoke = {
             {
                 name = "train-smoke",
