@@ -89,7 +89,7 @@ local function create_spidertron_light_cone(orientation, intensity, size, shift_
     }
 end
 
-function me.get_leg_graphics_properties(scale, index)
+function me.get_leg_graphics_properties(scale, _)
     return {
         upper_part = {
             middle_offset_from_top = 0.35 * scale, -- offset length in tiles (= px / 32)
@@ -535,8 +535,18 @@ function me.create_spidertron_leg_graphics_set(spidertron_scale, leg_index)
             get_part("leg_lower_part_graphics_definitions"),
             me.get_leg_graphics_properties(spidertron_scale, leg_index).lower_part
         ),
-        upper_part_shadow = create_leg_part_shadow_graphics(spidertron_scale, leg_index, get_part("leg_upper_part_graphics_definitions"), get_leg_properties("upper_part", "shadow")),
-        lower_part_shadow = create_leg_part_shadow_graphics(spidertron_scale, leg_index, get_part("leg_lower_part_graphics_definitions"), get_leg_properties("lower_part", "shadow")),
+        upper_part_shadow = create_leg_part_shadow_graphics(
+            spidertron_scale,
+            leg_index,
+            get_part("leg_upper_part_graphics_definitions"),
+            get_leg_properties("upper_part", "shadow")
+        ),
+        lower_part_shadow = create_leg_part_shadow_graphics(
+            spidertron_scale,
+            leg_index,
+            get_part("leg_lower_part_graphics_definitions"),
+            get_leg_properties("lower_part", "shadow")
+        ),
         upper_part_water_reflection = create_leg_part_water_reflection_graphics(
             spidertron_scale,
             leg_index,
