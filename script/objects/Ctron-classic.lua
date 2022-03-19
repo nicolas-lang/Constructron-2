@@ -1,7 +1,9 @@
 ﻿local Ctron = require("__Constructron-2__.script.objects.Ctron")
 
 -- class Type Ctron_classic
-local Ctron_classic = {}
+local Ctron_classic = {
+    class_name = "Ctron_classic",
+}
 Ctron_classic.__index = Ctron_classic
 
 setmetatable(
