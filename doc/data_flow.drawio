@@ -1,6 +1,6 @@
-<mxfile host="app.diagrams.net" modified="2022-03-19T16:09:13.079Z" agent="5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36" etag="zuO2L19a2Pm-0Q6_WsWu" version="17.1.2" type="github">
+<mxfile host="app.diagrams.net" modified="2022-03-19T22:08:58.908Z" agent="5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36" etag="yrc7Q8xMVaEoZkhh4lxC" version="17.1.2" type="github">
   <diagram id="C5RBs43oDa-KdzZeNtuy" name="Page-1">
-    <mxGraphModel dx="1673" dy="908" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+    <mxGraphModel dx="2031" dy="1103" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
       <root>
         <mxCell id="WIyWlLk6GJQsqaUBKTNV-0" />
         <mxCell id="WIyWlLk6GJQsqaUBKTNV-1" parent="WIyWlLk6GJQsqaUBKTNV-0" />
@@ -205,8 +205,12 @@
         <mxCell id="zSMuD_L03UTI61CqOf46-85" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="zSMuD_L03UTI61CqOf46-78" target="zSMuD_L03UTI61CqOf46-79">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="zSMuD_L03UTI61CqOf46-91" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="zSMuD_L03UTI61CqOf46-78" target="zSMuD_L03UTI61CqOf46-75">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="zSMuD_L03UTI61CqOf46-91" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="zSMuD_L03UTI61CqOf46-78" target="zSMuD_L03UTI61CqOf46-116">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="970" y="1065" />
+            </Array>
+          </mxGeometry>
         </mxCell>
         <mxCell id="zSMuD_L03UTI61CqOf46-78" value="&lt;span&gt;inventory&lt;br&gt;full&lt;br&gt;&lt;/span&gt;" style="rhombus;whiteSpace=wrap;html=1;shadow=0;fontFamily=Helvetica;fontSize=12;align=center;strokeWidth=1;spacing=6;spacingTop=-4;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
           <mxGeometry x="545" y="1025" width="100" height="80" as="geometry" />
@@ -285,6 +289,18 @@
         </mxCell>
         <mxCell id="zSMuD_L03UTI61CqOf46-111" value="&lt;span&gt;go to station&lt;br&gt;&lt;/span&gt;" style="rhombus;whiteSpace=wrap;html=1;shadow=0;fontFamily=Helvetica;fontSize=12;align=center;strokeWidth=1;spacing=6;spacingTop=-4;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
           <mxGeometry x="670" y="655" width="100" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="zSMuD_L03UTI61CqOf46-118" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="zSMuD_L03UTI61CqOf46-116" target="zSMuD_L03UTI61CqOf46-117">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="zSMuD_L03UTI61CqOf46-116" value="&lt;span&gt;dispose&lt;br&gt;items&lt;br&gt;at station&lt;br&gt;&lt;/span&gt;" style="rhombus;whiteSpace=wrap;html=1;shadow=0;fontFamily=Helvetica;fontSize=12;align=center;strokeWidth=1;spacing=6;spacingTop=-4;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="920" y="755" width="100" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="zSMuD_L03UTI61CqOf46-119" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="zSMuD_L03UTI61CqOf46-117" target="zSMuD_L03UTI61CqOf46-75">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="zSMuD_L03UTI61CqOf46-117" value="&lt;span&gt;pick up new tasks&lt;br&gt;&lt;/span&gt;" style="rhombus;whiteSpace=wrap;html=1;shadow=0;fontFamily=Helvetica;fontSize=12;align=center;strokeWidth=1;spacing=6;spacingTop=-4;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="792.5" y="755" width="100" height="80" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
