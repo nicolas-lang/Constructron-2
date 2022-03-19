@@ -5,8 +5,9 @@ local cust_lib = require("__Constructron-2__.data.lib.custom_lib")
 local collision_mask_util_extended = require("__Constructron-2__.script.lib.collision-mask-util-control")
 
 local Spidertron_Pathfinder = {
-    clean_linear_path = false,
-    clean_path_steps = true,
+    class_name = "Spidertron_Pathfinder",
+    clean_linear_path_enabled = false,
+    clean_path_steps_enabled = true,
     clean_path_steps_distance = 5,
     -- how close do we need to get to the target
     non_colliding_position_accuracy = 0.5,
@@ -115,7 +116,7 @@ end
 
 function Spidertron_Pathfinder:request_path2(request_params)
     log("request_path2")
-    local pathing_collision_mask = {"water-tile", "consider-tile-transitions", "colliding-with-tiles-only"}
+    local pathing_collision_mask = {"water-tile", "consider-tile-transitions", "colliding-with-tiles-only", "not-colliding-with-itself"}
     if game.active_mods["space-exploration"] then
         local spaceship_collision_layer = collision_mask_util_extended.get_named_collision_mask("moving-tile")
         local empty_space_collision_layer = collision_mask_util_extended.get_named_collision_mask("empty-space-tile")
@@ -182,7 +183,7 @@ function Spidertron_Pathfinder:on_script_path_request_finished(event)
                 elseif request.retry == 4 then
                     request.radius = self.radius
                     -- 5. find_non_colliding_positions and Re-Request
-                    position = request.unit:get_position()
+                    local position = request.unit:get_position()
                     request.start = self:find_non_colliding_position(position.surface, request.start) or request.start
                     request.goal = self:find_non_colliding_position(position.surface, request.start) or request.goal
                 elseif request.retry == 5 then
@@ -197,14 +198,14 @@ function Spidertron_Pathfinder:on_script_path_request_finished(event)
                 request.unit:set_autopilot({{position = {x = request.initial_target.x, y = request.initial_target.y}}})
             end
         else
-            if self.clean_linear_path then
+            if self.clean_linear_path_enabled then
                 path = Spidertron_Pathfinder.clean_linear_path(path)
             end
-            if self.clean_path_steps then
+            if self.clean_path_steps_enabled then
                 path = Spidertron_Pathfinder.clean_path_steps(path, self.clean_path_steps_distance)
             end
             table.insert(path, {position = {x = request.initial_target.x, y = request.initial_target.y}})
-            if self.clean_path_steps then
+            if self.clean_path_steps_enabled then
                 path = Spidertron_Pathfinder.clean_path_steps(path, 2.5)
             end
             --log(serpent.block(request.request))
