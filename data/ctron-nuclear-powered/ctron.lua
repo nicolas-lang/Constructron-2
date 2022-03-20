@@ -84,7 +84,7 @@ local spidertron_definition = {
     burner = {
         type = "burner",
         fuel_inventory_size = 1,
-        burnt_inventory_size = 2,
+        burnt_inventory_size = 1,
         fuel_category = "nuclear",
         effectivity = 0.5
     }

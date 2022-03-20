@@ -86,10 +86,10 @@ table.insert(ctron_solar_powered, ctron_solar_powered_battery_item)
 for k, v in pairs(
     {
         [1] = 0.5,
-        [2] = 1.0,
-        [3] = 1.5,
-        [4] = 2.0,
-        [5] = 2.5
+        [2] = 1.25,
+        [3] = 2.0,
+        [4] = 2.75,
+        [5] = 3.5
     }
 ) do
     table.insert(ctron_solar_powered, lib_equipment.make_equipment("item", {name = "ctron_solar_powered_leg-" .. k, placed_as_equipment_result = "ctron_solar_powered_leg-" .. k}))
