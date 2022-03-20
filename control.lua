@@ -19,6 +19,9 @@ local Station = require("__Constructron-2__.script.objects.Station")
 
 local Surface_manager = require("__Constructron-2__.script.objects.Surface-manager")
 
+-- Task Object
+local Task = require("__Constructron-2__.script.objects.Task")
+
 -- Pathfinder
 local Spidertron_Pathfinder = require("__Constructron-2__.script.objects.Spidertron-pathfinder")
 
@@ -147,12 +150,18 @@ local function process_entity_queue()
                     elseif entity.name == "service-station" then
                         init_service_station(entity)
                     else
-                        -- surfacemanagers[entity.surface].process_entity(entity)
                         -- process it
-                        log("processed entity:")
-                        log(entity.type)
-                        log(entity.name)
-                        log(entity.unit_number)
+                        log("processing entity:")
+                        log("entity.type " .. (entity.type or "nil"))
+                        log("entity.name " .. (entity.name or "nil"))
+                        if entity.surface then
+                            log("entity.surface.index " .. (entity.surface.index or "nil"))
+                        end
+                        log("entity.unit_number " .. (entity.unit_number or "nil"))
+                        local surface_index = entity.surface.index
+                        local surface_manager = surface_managers[surface_index]
+                        log(serpent.block(surface_manager))
+                        surface_manager:process_entity(entity)
                     end
                     c = c + 1
                 end
@@ -255,6 +264,7 @@ local on_init = function()
     Station.init_globals()
     Spidertron_Pathfinder.init_globals()
     Surface_manager.init_globals()
+    Task.init_globals()
     global.entity_processing_queue = global.entity_processing_queue or {}
     global.chunk_processing_queue = global.chunk_processing_queue or {}
     global.status_report = global.status_report or {}
@@ -277,7 +287,15 @@ local on_nth_tick_20 = function(_)
     local has_worked
     has_worked = process_chunk_queue()
     if not has_worked then
-        process_entity_queue()
+        has_worked = process_entity_queue()
+    end
+    if not has_worked then
+        limit = 10
+        for _, manager in pairs(surface_managers) do
+            if limit > 0 then
+                limit = limit - manager:assign_tasks(limit)
+            end
+        end
     end
 end
 
@@ -306,12 +324,18 @@ local on_tick_once = function(_)
     Spidertron_Pathfinder.check_pathfinder_requests_timeout()
     process_tech_unlock()
 
-    for _, g_surface in pairs(global.Surface_managers) do
+    for _, g_surface in pairs(global.surface_managers or {}) do
         local surface = game.surfaces[g_surface.surface_id]
         if surface and surface.valid then
             surface_managers[surface.index] = Surface_manager(surface)
         else
             surface_managers[g_surface.id] = nil
+        end
+    end
+
+    for _, surface in pairs(game.surfaces) do
+        if surface and surface.valid and not surface_managers[surface.index] then
+            surface_managers[surface.index] = Surface_manager(surface)
         end
     end
 
@@ -520,6 +544,7 @@ script.on_event(ev.on_research_finished, on_research_finished)
 script.on_event(ev.on_surface_created, on_surface_created)
 script.on_event(ev.on_surface_deleted, on_surface_deleted)
 --[[script.on_event(ev.on_entity_cloned, ctron.on_entity_cloned)
+on_runtime_mod_setting_changed
 
 script.on_event(ev.on_post_entity_died, ctron.on_post_entity_died)
 --]]
