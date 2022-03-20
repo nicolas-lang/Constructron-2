@@ -16,11 +16,11 @@ me.main = function(event)
     if event.tick % 120 == 0 then
         log("tick")
         local p1 = {
-            x = -20,
+            x = -22,
             y = 15
         }
         local p2 = {
-            x = 20,
+            x = 22,
             y = 15
         }
         local p3 = {
@@ -28,7 +28,7 @@ me.main = function(event)
             y = 25
         }
         local target
-        local target_distance = 5
+        local target_distance = 2.5
         for unit_number, unit in pairs(me.ctrons) do
             log("unit_number" .. unit_number)
             if unit:is_valid() then

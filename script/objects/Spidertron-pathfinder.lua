@@ -185,7 +185,7 @@ function Spidertron_Pathfinder:on_script_path_request_finished(event)
                     -- 5. find_non_colliding_positions and Re-Request
                     local position = request.unit:get_position()
                     request.start = self:find_non_colliding_position(position.surface, request.start) or request.start
-                    request.goal = self:find_non_colliding_position(position.surface, request.start) or request.goal
+                    request.goal = self:find_non_colliding_position(position.surface, request.goal) or request.goal
                 elseif request.retry == 5 then
                     -- 6. Re-Request with even more increased radius again
                     request.radius = 10
