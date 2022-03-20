@@ -82,7 +82,7 @@ function Surface_manager:register_entity(entity)
     end
 end
 
-function Surface_manager:unregister_entity(entity)
+function Surface_manager:unregister_entity(entity)-- luacheck: ignore
     self:log()
     local x, y = Surface_manager.chunk_from_position(entity.position)
     local key = x .. "/" .. y
@@ -93,13 +93,13 @@ function Surface_manager:unregister_entity(entity)
     end
 end
 
-function Surface_manager:run_jobs(limit)
+function Surface_manager:run_jobs(limit)-- luacheck: ignore
     self:log()
     limit = limit or 10
     local key, chunk = next({})
-    c = 0
+    local c = 0
     while key and c < limit do
-    -- loop through jobs 
+    -- loop through jobs
     --      run each job's action driver & state transition
     end
     return c
@@ -110,7 +110,7 @@ function Surface_manager:assign_jobs(limit)
     self:log()
     limit = limit or 10
     local key, chunk = next({})
-    c = 0
+    local c = 0
     while key and c < limit do
         --  select 1st free constructron
         --      get next task
@@ -127,7 +127,7 @@ function Surface_manager:assign_tasks(limit)
     self:log()
     limit = limit or 10
     local key, chunk = next(self.chunks)
-    c = 0
+    local c = 0
     while key and c < limit do
         self:log("key " .. serpent.block(key))
         self:log("chunk " .. serpent.block(chunk))

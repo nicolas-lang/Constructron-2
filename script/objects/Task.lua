@@ -110,8 +110,8 @@ function Task:get_required_items(entity)
             items[item_name] = (items[item_name] or 0) + 1
         elseif entity.to_be_deconstructed() then
             local item_name = item_to_place_this(entity.prototype.items_to_place_this)
-            if not item_name and item.minable then
-                item_name = item.minable.result
+            if not item_name and entity.prototype.minable then
+                item_name = entity.prototype.minable.result
             end
             items[item_name] = (items[item_name] or 0) - 1
         elseif entity.to_be_upgraded() then
