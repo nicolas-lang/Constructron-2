@@ -516,7 +516,9 @@ script.on_event(
         {filter = "final-health", comparison = ">", value = 0, mode = "and"},
         {filter = "robot-with-logistics-interface", invert = true, mode = "and"},
         {filter = "vehicle", invert = true, mode = "and"},
-        {filter = "rolling-stock", invert = true, mode = "and"}
+        {filter = "rolling-stock", invert = true, mode = "and"},
+        {filter = "type", type = "character", invert = true, mode = "and"},
+        {filter = "type", type = "fish", invert = true, mode = "and"}
     }
 )
 
@@ -535,7 +537,8 @@ script.on_event(
     ev.on_marked_for_deconstruction,
     on_entity_marked,
     {
-        {filter = "name", name = "item-on-ground", invert = true, mode = "and"}
+        {filter = "name", name = "item-on-ground", invert = true, mode = "and"},
+        {filter = "type", type = "fish", invert = true, mode = "and"}
     }
 )
 
