@@ -320,6 +320,8 @@ end
 -- @param event from factorio framework
 local on_tick_once = function(_)
     log("on_tick_once")
+    --initialize logfile
+    game.write_file("constructron.log","Constructron Logfile", false)
     Ctron.init_managed_gear()
     Spidertron_Pathfinder.check_pathfinder_requests_timeout()
     process_tech_unlock()
