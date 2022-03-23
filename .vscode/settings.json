@@ -15,7 +15,9 @@
         "serpent",
         "circuit_connector_definitions",
         "commands",
-        "remote"
+        "remote",
+        "logistic_chest_opened_duration",
+        "default_circuit_wire_max_distance"
     ],
     "Lua.diagnostics.disable": [
         "lowercase-global"
