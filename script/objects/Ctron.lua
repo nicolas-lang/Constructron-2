@@ -44,6 +44,7 @@ function Ctron:new(entity)
         self.registration_id = script.register_on_entity_destroyed(entity)
         global.constructrons.unit_registration[self.registration_id] = entity.unit_number
         global.constructrons.units[entity.unit_number] = entity
+        self.status = Ctron.status.free
     else
         log("Ctron:entity invalid")
     end
@@ -51,6 +52,7 @@ end
 
 -- Static members
 Ctron.status = {
+    free = 0,
     idle = 1,
     moving = 2,
     constructing = 3,
@@ -113,7 +115,7 @@ function Ctron:is_valid()
     return (self.entity and self.entity.valid)
 end
 
-function Ctron:tick_update() -- luacheck: ignore
+function Ctron:update() -- luacheck: ignore
 end
 
 function Ctron:parse_gear_name(name)

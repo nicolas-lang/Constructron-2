@@ -1,5 +1,5 @@
 local custom_lib = require("__Constructron-2__.data.lib.custom_lib")
-local Debug = require("__Constructron-2__.script.objects.Debug")
+local Action = require("__Constructron-2__.script.objects.actions.Action")
 
 -- class Type Action_job_paused, nil members exist just to describe fields
 local Action_job_paused = {

@@ -11,7 +11,7 @@ end
 ]]
 
 
-local collision_mask_util_extended = require("__Constructron-2__.data.collision-mask-util-extended")
+local collision_mask_util_extended = require("__Constructron-2__.data.lib.collision-mask-util-extended")
 local constructron_collision_mask = {
     "water-tile",
     "colliding-with-tiles-only",

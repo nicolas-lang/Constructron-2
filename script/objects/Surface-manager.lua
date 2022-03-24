@@ -7,6 +7,7 @@ local Job = require("__Constructron-2__.script.objects.Job")
 -- class Type Surface_manager, nil members exist just to describe fields
 local Surface_manager = {
     class_name = "Surface_manager"
+    
 }
 Surface_manager.__index = Surface_manager
 
@@ -49,9 +50,12 @@ function Surface_manager:new(surface, force)
         self.chunks = global.surface_managers[self.id].chunks
         self.tasks = global.surface_managers[self.id].tasks
         self.jobs = global.surface_managers[self.id].jobs
+        self.job_actions = {}
         for key, action in pairs(Job.actions) do
             self.job_actions[key] = action(self)
         end
+        self.constructrons = {}
+        self.stations = {}
     end
 end
 
@@ -73,11 +77,39 @@ end
 --  Surface Processing
 -------------------------------------------------------------------------------
 
-function Surface_manager:update_units(limit) -- luacheck: ignore
+function Surface_manager:add_constructron(constructron)
+    self.constructrons[constructron] = constructron
+end
+
+function Surface_manager:add_station(station)
+    self.stations[station] = station
+end     
+
+function Surface_manager:update(limit) -- luacheck: ignore
+    for key , constructron in pairs(self.constructrons) do
+        if constructron:is_valid() then
+            constructron:update()
+        else
+            game.print("unregistered ctron "..key)
+            self.constructrons[key] = nil
+        end
+    end
+    for key , station in pairs(self.stations) do
+        if station:is_valid() then
+            station:update()
+        else
+            game.print("unregistered station "..key)
+            self.stations[key] = nil
+        end
+    end
 end
 
 function Surface_manager:get_free_constructron() -- luacheck: ignore
-    return nil
+    for _, constructron in pairs(self.constructrons) do
+        if constructron:get_status_id() == Ctron.status.free then
+            return constructron
+        end
+    end
 end
 
 -------------------------------------------------------------------------------
@@ -193,7 +225,7 @@ function Surface_manager:assign_jobs(limit)
     local unit = self:get_free_constructron()
     while task and unit and c < limit do
         --  select 1st free constructron
-        local unit = self:get_free_constructron()
+        unit:set_status(Ctron.status.idle)
         local job = Job()
         --just simple 1:1  - fix later
         key, task = next(self.tasks)
