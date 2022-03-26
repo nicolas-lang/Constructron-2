@@ -4,7 +4,7 @@
 -- libraries and static objects
 local technology_unlocker = require("__Constructron-2__.script.reload_technology_unlock")
 local custom_lib = require("__Constructron-2__.data.lib.custom_lib")
-local control_lib = require("__Constructron-2__.script.lib.control_lib")
+--local control_lib = require("__Constructron-2__.script.lib.control_lib")
 
 -- Classe based things requireing initialization
 local Ctron = require("__Constructron-2__.script.objects.Ctron")
@@ -32,14 +32,7 @@ local EntityClass = {
 Ctron.pathfinder = Spidertron_Pathfinder()
 local player_forces = {"player"} -- object model supports multiple forces, but we dont care about setting it up for now
 local surface_managers = {}
-local entity_processing_queue =
-    Entity_processing_queue(
-    (function(entity)
-        if surface_managers[entity.surface.index] and surface_managers[entity.surface.index][entity.force.index] then
-            surface_managers[entity.surface.index][entity.force.index]:register_entity(entity)
-        end
-    end)
-)
+local entity_processing_queue
 
 -------------------------------------------------------------------------------
 -- various scripting
@@ -74,10 +67,21 @@ local function init_entity_instance(entity)
         local obj = EntityClass[entity.name](entity)
         if entity.name == "service-station" then
             surface_managers[entity.surface.index][entity.force.index]:add_station(obj)
-        elseif custom_lib.table_has_value({"ctron-classic", "ctron-steam-powered", "ctron-solar-powered", "ctron-nuclear-powered"}, entity.name) then
+            return true
+        elseif EntityClass[entity.name] then
             obj:set_request_items()
             surface_managers[entity.surface.index][entity.force.index]:add_constructron(obj)
         end
+    end
+end
+
+local function assign_entity_to_surface(entity)
+    if not EntityClass[entity.name] then
+        if surface_managers[entity.surface.index] and surface_managers[entity.surface.index][entity.force.index] then
+            surface_managers[entity.surface.index][entity.force.index]:register_entity(entity)
+        end
+    else
+        init_entity_instance(entity)
     end
 end
 
@@ -91,9 +95,12 @@ local on_init = function()
     global.pause_processing = global.pause_processing or false
     Surface_manager.init_globals()
     Ctron.init_globals()
+    Task.init_globals()
+    Job.init_globals()
     EntityClass["service-station"].init_globals()
     Spidertron_Pathfinder.init_globals()
     Surface_manager.init_globals()
+    entity_processing_queue = Entity_processing_queue(assign_entity_to_surface)
     Entity_processing_queue.init_globals()
 
     Ctron.update_tech_unlocks()
@@ -101,7 +108,7 @@ end
 
 --- main worker for unit/job processing
 -- @param event from factorio framework
-local on_nth_tick_120 = function(event)
+local on_nth_tick_120 = function(_)
     log("control:on_nth_tick_120")
     if global.pause_processing then
         log("paused")
@@ -247,7 +254,7 @@ local on_entity_cloned = function(event)
         end
         --register at new surface
         entity = event.destination
-        local obj = EntityClass[entity.name](entity)
+        obj = EntityClass[entity.name](entity)
         if entity.name == "service-station" then
             surface_managers[entity.surface.index][entity.force.index]:add_station(obj)
         elseif custom_lib.table_has_value({"ctron-classic", "ctron-steam-powered", "ctron-solar-powered", "ctron-nuclear-powered"}, entity.name) then
@@ -262,7 +269,7 @@ end
 local ev = defines.events
 script.on_init(on_init)
 script.on_configuration_changed(on_init)
-script.on_event({ev.on_surface_created, ev.on_surface_deleted, ev.on_force_created, ev.on_force_deleted}, setup_surfaces)
+script.on_event({ev.on_surface_created, ev.on_surface_deleted, ev.on_force_created, ev.on_forces_merged}, setup_surfaces)
 script.on_event(ev.on_tick, on_tick_once) -- replaced by on_nth_tick --> simple_movement_controller.main after 1st tick
 
 script.on_event(ev.on_player_removed_equipment, on_player_removed_equipment)
@@ -336,6 +343,30 @@ script.on_event(
 -- command & interfaces function
 -------------------------------------------------------------------------------
 
+--- pauses statemachine and queue processing
+-- only pauses statemachine and queue processing, not initial event capture
+-- on unpause every ctron might have it's current task run into timeout
+local function toggle_pause()
+    log("control:toggle_pause")
+    global.pause_processing = not global.pause_processing
+    game.print("paused: " .. tostring(global.pause_processing))
+    return global.pause_processing
+end
+
+--- Resets the queues, And requeues all chunks on all surfaces to be scanned
+local function rescan_all_surfaces()
+    log("control:rescan_all_surfaces")
+    global.chunk_processing_queue = {}
+    global.entity_processing_queue = {}
+    for _, surface in pairs(game.surfaces) do
+        if surface.valid then
+            for chunk in surface.get_chunks() do
+                entity_processing_queue:queue_chunk(chunk)
+            end
+        end
+    end
+end
+
 --- full hardreset of everything
 -- not implemented
 local function reset()
@@ -356,30 +387,6 @@ local function reset()
     setup_surfaces()
     rescan_all_surfaces()
     global.pause_processing = false
-end
-
---- pauses statemachine and queue processing
--- only pauses statemachine and queue processing, not initial event capture
--- on unpause every ctron might have it's current task run into timeout
-local function toggle_pause()
-    log("control:toggle_pause")
-    global.pause_processing = not global.pause_processing
-    game.print("paused: " .. tostring(global.pause_processing))
-    return global.pause_processing
-end
-
---- Resets the queues, And requeues all chunks on all surfaces to be scanned
-local function rescan_all_surfaces()
-    log("control:rescan_all_surfaces")
-    global.chunk_processing_queue = {}
-    global.entity_processing_queue = {}
-    for surface_key, surface in pairs(game.surfaces) do
-        if surface.valid then
-            for chunk in surface.get_chunks() do
-                entity_processing_queue:queue_chunk(chunk)
-            end
-        end
-    end
 end
 
 --- get_stats

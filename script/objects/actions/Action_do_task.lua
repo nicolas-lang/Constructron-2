@@ -1,3 +1,4 @@
+ -- luacheck: ignore
 local custom_lib = require("__Constructron-2__.data.lib.custom_lib")
 local Action = require("__Constructron-2__.script.objects.actions.Action")
 

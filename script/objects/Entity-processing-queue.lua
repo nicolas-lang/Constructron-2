@@ -1,4 +1,4 @@
-local custom_lib = require("__Constructron-2__.data.lib.custom_lib")
+--local custom_lib = require("__Constructron-2__.data.lib.custom_lib")
 local Debug = require("__Constructron-2__.script.objects.Debug")
 
 -- class Type Task, nil members exist just to describe fields
@@ -57,17 +57,11 @@ function Entity_queue:process_entity_queue()
             while entity_index and c < self.max_entities_per_call do
                 local entity = entities[entity_index]
                 if entity and entity.valid then
-                    if entity.type == "spider-vehicle" then
-                        init_spidertron(entity)
-                    elseif entity.name == "service-station" then
-                        init_service_station(entity)
-                    else
-                        -- process it
-                        log("processing entity:")
-                        log("entity.type " .. (entity.type or "nil"))
-                        log("entity.name " .. (entity.name or "nil"))
-                        self:entity_processing_callback(entity)
-                    end
+                    -- process it
+                    log("processing entity:")
+                    log("entity.type " .. (entity.type or "nil"))
+                    log("entity.name " .. (entity.name or "nil"))
+                    self:entity_processing_callback(entity)
                     c = c + 1
                 end
                 entities[entity_index] = nil
@@ -136,7 +130,10 @@ function Entity_queue:queue_entity(entity, tick, build_type)
     self:log()
     if entity and entity.valid then
         tick = tick or game.tick
-        if (entity.type == "tile-ghost" or build_type ~= "construction" or entity.type == "entity-ghost" or entity.type == "item-request-proxy") then
+        if
+            (entity.type == "tile-ghost" or build_type ~= "construction" or entity.type == "entity-ghost" or entity.type == "item-request-proxy" or entity.type == "spider-vehicle" or
+                entity.type == "roboport")
+         then
             -- register entity for processing, conditions are ordered by maximum expected number of build prototypes per tick to allow quick "short-circuiting"
             if not global.entity_processing_queue[tick] then
                 global.entity_processing_queue[tick] = {}

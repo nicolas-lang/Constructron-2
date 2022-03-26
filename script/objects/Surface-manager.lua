@@ -80,12 +80,13 @@ function Surface_manager.get_surface_manager(surface, force)
     end
 end
 ]]
-
 -- Class Methods
 function Surface_manager:destroy()
     self:log()
     -- ToDo call destroy for  all managed entities on force/surface
-    global.surface_managers[self.id] = nil
+    if global.surface_managers then
+        global.surface_managers[self.id] = nil
+    end
 end
 
 function Surface_manager:valid()
@@ -198,7 +199,7 @@ function Surface_manager:unregister_entity(entity) -- luacheck: ignore
     local key = x .. "/" .. y
     self.chunks[key] = self.chunks[key] or {entities = {}}
     self.chunks[key].entities[control_lib.get_entity_key(entity)] = nil
-    
+
     if custom_lib.table_length(self.chunks[key]) == 0 then
         self.chunks[key] = nil
     end
@@ -271,14 +272,13 @@ function Surface_manager:assign_jobs(limit)
     self:log()
     limit = limit or 10
     local c = 0
-    local key, task = next(self.tasks)
+    local key , task = next(self.tasks)
     local unit = self:get_free_constructron()
     while task and unit and c < limit do
         --  select 1st free constructron
         unit:set_status(Ctron.status.idle)
         local job = Job()
         --just simple 1:1  - fix later
-        key, task = next(self.tasks)
         job.add_task(task)
         self.tasks[key] = nil
         self.jobs[#(self.jobs) + 1] = job
@@ -289,8 +289,8 @@ function Surface_manager:assign_jobs(limit)
         --          split task if to large
         --          insert task with remainder to front of task-queue if task was split
         --      get next (until >80% full or next task fits in full or distance > 1.5 chunks)
-        has_task = next(self.tasks)
-        local unit = self:get_free_constructron()
+        key, task = next(self.tasks)
+        unit = self:get_free_constructron()
         c = c + 1
     end
     return c

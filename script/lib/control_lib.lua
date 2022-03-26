@@ -22,14 +22,14 @@ me.get_entity_key = function(entity)
             local surface_index = entity.surface.index
             local x = entity.position.x or entity.position[0]
             local y = entity.position.y or entity.position[1]
-            if math.abs(x-math.floor(x))>0.001 then
-                x = math.floor(x*1000)
-            else 
+            if math.abs(x - math.floor(x)) > 0.001 then
+                x = math.floor(x * 1000)
+            else
                 x = math.floor(x)
             end
-            if math.abs(y-math.floor(y))>0.001 then
-                y = math.floor(y*1000)
-            else 
+            if math.abs(y - math.floor(y)) > 0.001 then
+                y = math.floor(y * 1000)
+            else
                 y = math.floor(y)
             end
             local sign_x = x < 0 and 1 or 0
