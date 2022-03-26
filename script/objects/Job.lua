@@ -1,4 +1,4 @@
-local custom_lib = require("__Constructron-2__.data.lib.custom_lib")
+--local custom_lib = require("__Constructron-2__.data.lib.custom_lib")
 local Debug = require("__Constructron-2__.script.objects.Debug")
 
 -- class Type Job, nil members exist just to describe fields
@@ -15,9 +15,8 @@ local Job = {
         task_failed = require("__Constructron-2__.script.objects.actions.Action_task_failed"),
         job_paused = require("__Constructron-2__.script.objects.actions.Action_job_paused"),
         job_completed = require("__Constructron-2__.script.objects.actions.Action_job_completed"),
-        job_failed = require("__Constructron-2__.script.objects.actions.Action_job_failed"),
-    },
-    
+        job_failed = require("__Constructron-2__.script.objects.actions.Action_job_failed")
+    }
 }
 Job.__index = Job
 
@@ -38,7 +37,6 @@ Job.state = {
     next_task = 20,
     do_task = 30,
     get_service = 40,
-    
     task_completed = 70,
     task_failed = 80,
     job_paused = 50,
@@ -69,7 +67,7 @@ function Job:set_state(state)
     self.state = Job.state[state]
 end
 
-function Job:get_state(state)
+function Job:get_state()
     for k, v in pairs(Job.state) do
         if self.state == v then
             return k
@@ -84,4 +82,3 @@ function Job:destroy()
 end
 
 return Job
-

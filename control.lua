@@ -103,7 +103,9 @@ local on_init = function()
     entity_processing_queue = Entity_processing_queue(assign_entity_to_surface)
     Entity_processing_queue.init_globals()
 
+    technology_unlocker.reload_tech("spidertron")
     Ctron.update_tech_unlocks()
+
 end
 
 --- main worker for unit/job processing

@@ -148,17 +148,15 @@ end
 
 --- queue chunk
 -- @param event from factorio framework
-function Entity_queue:queue_chunk(chunk, tick)
+function Entity_queue:queue_chunk(chunk)
     self:log()
     if chunk and chunk.valid then
-        tick = tick or game.tick
         local index = #global.chunk_processing_queue
         global.chunk_processing_queue[index + 1] = {
-            surface = surface_key,
+            surface = chunk.surface.index,
             left_top = chunk.area.left_top,
             right_bottom = chunk.area.right_bottom
         }
-        i = i + 1
     end
 end
 

@@ -123,7 +123,7 @@ function Surface_manager:remove_constructron(constructron)
     self.constructrons[constructron.unit_number] = nil
 end
 
-function Surface_manager:constructron_destroyed(constructron_data)
+function Surface_manager:constructron_destroyed(constructron_data) -- luacheck: ignore
     --self:remove_constructron(...)
 end
 
@@ -131,7 +131,7 @@ function Surface_manager:remove_station(station)
     self.stations[station.unit_number] = nil
 end
 
-function Surface_manager:station_destroyed(station_data)
+function Surface_manager:station_destroyed(station_data) -- luacheck: ignore
     --self:remove_station(...)
 end
 
