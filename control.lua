@@ -247,22 +247,13 @@ end
 -- @param event from factorio framework
 local function on_entity_cloned(event)
     log("control:on_entity_cloned")
-    local entity = event.source
-    -- todo check if type check makes more sense if done in surfasce manager
+    local entity = event.destination
     if EntityClass[entity.name] then
-        --unregister at old surface
-        local obj = EntityClass[entity.name](entity)
-        if entity.name == "service-station" then
-            surface_managers[entity.surface.index][entity.force.index]:remove_station(obj)
-        elseif custom_lib.table_has_value({"ctron-classic", "ctron-steam-powered", "ctron-solar-powered", "ctron-nuclear-powered"}, entity.name) then
-            surface_managers[entity.surface.index][entity.force.index]:remove_constructron(obj)
-        end
         --register at new surface
-        entity = event.destination
         obj = EntityClass[entity.name](entity)
         if entity.name == "service-station" then
             surface_managers[entity.surface.index][entity.force.index]:add_station(obj)
-        elseif custom_lib.table_has_value({"ctron-classic", "ctron-steam-powered", "ctron-solar-powered", "ctron-nuclear-powered"}, entity.name) then
+        else
             obj:set_request_items()
             surface_managers[entity.surface.index][entity.force.index]:add_constructron(obj)
         end
