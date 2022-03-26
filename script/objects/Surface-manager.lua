@@ -65,21 +65,6 @@ function Surface_manager.chunk_from_position(position)
     return math.floor((position.x or position[1]) / 32), math.floor((position.y or position[2]) / 32)
 end
 
---[[
-function Surface_manager.get_surface_manager(surface, force)
-    for _, sm in pairs(global.surface_managers) do
-        if force then
-            if (sm.surface_index == surface.index) and (sm.force_index == force.index) then
-                return sm
-            end
-        else
-            if (sm.surface_index == surface.index) then
-                return sm
-            end
-        end
-    end
-end
-]]
 -- Class Methods
 function Surface_manager:destroy()
     self:log()
@@ -110,12 +95,10 @@ function Surface_manager:get_stats()
 end
 
 function Surface_manager:add_constructron(constructron)
-    -- todo duplicates
     self.constructrons[constructron.unit_number] = constructron
 end
 
 function Surface_manager:add_station(station)
-    -- todo duplicates
     self.stations[station.unit_number] = station
 end
 
@@ -124,7 +107,10 @@ function Surface_manager:remove_constructron(constructron)
 end
 
 function Surface_manager:constructron_destroyed(constructron_data) -- luacheck: ignore
-    --self:remove_constructron(...)
+    --if self.constructrons[constructron_data.unit_number] then
+    --    self.constructrons[constructron_data.unit_number]:destroy()
+    --    self.constructrons[constructron_data.unit_number] = nil
+    --end
 end
 
 function Surface_manager:remove_station(station)
@@ -272,7 +258,7 @@ function Surface_manager:assign_jobs(limit)
     self:log()
     limit = limit or 10
     local c = 0
-    local key , task = next(self.tasks)
+    local key, task = next(self.tasks)
     local unit = self:get_free_constructron()
     while task and unit and c < limit do
         --  select 1st free constructron

@@ -76,6 +76,7 @@ local function init_entity_instance(entity)
 end
 
 local function assign_entity_to_surface(entity)
+    log("control:assign_entity_to_surface")
     if not EntityClass[entity.name] then
         if surface_managers[entity.surface.index] and surface_managers[entity.surface.index][entity.force.index] then
             surface_managers[entity.surface.index][entity.force.index]:register_entity(entity)
@@ -90,7 +91,7 @@ end
 -------------------------------------------------------------------------------
 --- Initializes required globals
 -- @see https://lua-api.factorio.com/latest/Data-Lifecycle.html
-local on_init = function()
+local function on_init()
     log("control:on_init")
     global.pause_processing = global.pause_processing or false
     Surface_manager.init_globals()
@@ -100,8 +101,8 @@ local on_init = function()
     EntityClass["service-station"].init_globals()
     Spidertron_Pathfinder.init_globals()
     Surface_manager.init_globals()
-    entity_processing_queue = Entity_processing_queue(assign_entity_to_surface)
     Entity_processing_queue.init_globals()
+    entity_processing_queue = Entity_processing_queue(assign_entity_to_surface)
 
     technology_unlocker.reload_tech("spidertron")
     Ctron.update_tech_unlocks()
@@ -110,8 +111,8 @@ end
 
 --- main worker for unit/job processing
 -- @param event from factorio framework
-local on_nth_tick_120 = function(_)
-    log("control:on_nth_tick_120")
+local function on_nth_tick_60(_)
+    log("control:on_nth_tick_60")
     if global.pause_processing then
         log("paused")
         return
@@ -139,7 +140,7 @@ end
 -- on_tick will be unscheduled
 -- schedules on_nth_tick_120
 -- @param event from factorio framework
-local on_tick_once = function(_)
+local function on_tick_once(_)
     log("control:on_tick_once")
     Ctron.init_managed_gear()
     Spidertron_Pathfinder.check_pathfinder_requests_timeout()
@@ -166,12 +167,12 @@ local on_tick_once = function(_)
     end
     -- unschduel self and schedule main worker
     script.on_event(defines.events.on_tick, nil)
-    script.on_nth_tick(120, on_nth_tick_120)
+    script.on_nth_tick(120, on_nth_tick_60)
 end
 
 --- Event handler on_player_removed_equipment
 -- @param event from factorio framework
-local on_player_removed_equipment = function(event)
+local function on_player_removed_equipment(event)
     log("control:on_player_removed_equipment")
     -- assumption: our managed gear if only exists in spidertrons, whenever a known gear is removed we treat the unit as a spidertron
     -- every prototype has a fixed location where if will be placed which is csv encoded in the order field
@@ -185,13 +186,14 @@ local on_player_removed_equipment = function(event)
 end
 
 local function on_research(_)
+    log("control:on_research")
     Ctron.update_tech_unlocks()
 end
 
 --- Event handler on_built_entity
 -- @param event from factorio framework
 local function on_built_entity(event)
-    game.print("on_built_entity")
+    log("control:on_built_entity")
     local entity = event.created_entity
     if entity and entity.valid then
         if not entity_processing_queue:queue_entity(entity, event.tick, "construction") then
@@ -203,21 +205,21 @@ end
 --- Event handler on_post_entity_died
 -- @param event from factorio framework
 local function on_post_entity_died(event)
-    game.print("on_post_entity_died")
+    log("control:on_post_entity_died")
     entity_processing_queue:queue_entity(event.ghost, event.tick, "construction")
 end
 
 --- Event handler on_entity_marked_for_upgrade and on_entity_marked_for_deconstruction
 -- @param event from factorio framework
 local function on_entity_marked(event)
-    log("on_entity_marked_for_*")
+    log("control:on_entity_marked_for_*")
     entity_processing_queue:queue_entity(event.entity, event.tick, "upgrade/deconstruction")
 end
 
 --- Event handler on_entity_damaged
 -- @param event from factorio framework
 local function on_entity_damaged(event)
-    log("on_entity_damaged ")
+    log("control:on_entity_damaged ")
     if event.force == "player" and (event.final_health / (event.final_damage_amount + event.final_health)) < 0.90 then
         --custom_lib.table_has_value(player_forces,event.force)
         entity_processing_queue:queue_entity(event.entity, event.tick, "repair")
@@ -243,7 +245,8 @@ end
 
 --- Event handler on_entity_cloned
 -- @param event from factorio framework
-local on_entity_cloned = function(event)
+local function on_entity_cloned(event)
+    log("control:on_entity_cloned")
     local entity = event.source
     -- todo check if type check makes more sense if done in surfasce manager
     if EntityClass[entity.name] then
@@ -372,9 +375,8 @@ end
 --- full hardreset of everything
 -- not implemented
 local function reset()
+    log("control:reset")
     game.print("Constructron: !!! hard reset !!!", {r = 1, g = 0.2, b = 0.2})
-    game.print("Constructron: All surfaces queued for rescan")
-    game.print("Constructron: please be patient...")
     for k, _ in pairs(global) do
         global[k] = nil
     end
@@ -388,11 +390,14 @@ local function reset()
     on_init()
     setup_surfaces()
     rescan_all_surfaces()
+    game.print("Constructron: All surfaces queued for rescan")
+    game.print("Constructron: please be patient...")
     global.pause_processing = false
 end
 
 --- get_stats
 local function get_stats()
+    log("control:get_stats")
     local stats = {}
     for force_index, _ in pairs(surface_managers) do
         for _, surface_manager in pairs(surface_managers[force_index]) do
