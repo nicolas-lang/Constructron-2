@@ -1,4 +1,5 @@
 local custom_lib = require("__Constructron-2__.data.lib.custom_lib")
+local control_lib = require("__Constructron-2__.script.lib.control_lib")
 local Debug = require("__Constructron-2__.script.objects.Debug")
 
 -- class Type Task, nil members exist just to describe fields
@@ -47,7 +48,7 @@ end
 
 function Task:add_entity(entity)
     self:log()
-    self.entities[entity] = entity
+    self.entities[control_lib.get_entity_key(entity)] = entity
 end
 
 function Task:get_items()
@@ -107,16 +108,22 @@ function Task:get_required_items(entity)
         local items = {}
         if entity.type == "tile-ghost" or entity.type == "entity-ghost" then
             local item_name = item_to_place_this(entity.ghost_prototype.items_to_place_this)
-            items[item_name] = (items[item_name] or 0) + 1
+            if item_name then
+                items[item_name] = (items[item_name] or 0) + 1
+            end
         elseif entity.to_be_deconstructed() then
             local item_name = item_to_place_this(entity.prototype.items_to_place_this)
             if not item_name and entity.prototype.minable then
                 item_name = entity.prototype.minable.result
             end
-            items[item_name] = (items[item_name] or 0) - 1
+            if item_name then
+                items[item_name] = (items[item_name] or 0) - 1
+            end
         elseif entity.to_be_upgraded() then
             local item_name = item_to_place_this(entity.get_upgrade_target().items_to_place_this)
-            items[item_name] = (items[item_name] or 0) + 1
+            if item_name then
+                items[item_name] = (items[item_name] or 0) + 1
+            end
         elseif entity.type == "cliff" then
             items["cliff-explosives"] = (items["cliff-explosives"] or 0) + 1
         elseif entity.type == "item-request-proxy" then
@@ -130,7 +137,7 @@ function Task:get_required_items(entity)
             items["repair-pack"] = (items["repair-pack"] or 0) + (missing / 300) * 1.3 -- bring 30% extra tools
         elseif entity.name == "ctron-buffer-chest" then
             self:log("ctron-buffer-chest not yet implemented")
-        --items = chest_requested - chest_inventory - network_inventory(which is not in buffer chests)
+        -- items = chest_requested - chest_inventory - network_inventory(which is not in buffer chests)
         end
         if next(items) then
             return items

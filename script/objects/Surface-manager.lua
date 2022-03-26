@@ -1,4 +1,5 @@
 local custom_lib = require("__Constructron-2__.data.lib.custom_lib")
+local control_lib = require("__Constructron-2__.script.lib.control_lib")
 local Task_construction = require("__Constructron-2__.script.objects.Task-construction")
 local Task_delivery = require("__Constructron-2__.script.objects.Task-delivery")
 local Debug = require("__Constructron-2__.script.objects.Debug")
@@ -109,16 +110,16 @@ end
 
 function Surface_manager:add_constructron(constructron)
     -- todo duplicates
-    self.constructrons[constructron] = constructron
+    self.constructrons[constructron.unit_number] = constructron
 end
 
 function Surface_manager:add_station(station)
     -- todo duplicates
-    self.stations[station] = station
+    self.stations[station.unit_number] = station
 end
 
 function Surface_manager:remove_constructron(constructron)
-    self.constructrons[constructron] = nil
+    self.constructrons[constructron.unit_number] = nil
 end
 
 function Surface_manager:constructron_destroyed(constructron_data)
@@ -126,7 +127,7 @@ function Surface_manager:constructron_destroyed(constructron_data)
 end
 
 function Surface_manager:remove_station(station)
-    self.stations[station] = nil
+    self.stations[station.unit_number] = nil
 end
 
 function Surface_manager:station_destroyed(station_data)
@@ -180,14 +181,14 @@ function Surface_manager:register_entity(entity)
     local x, y = Surface_manager.chunk_from_position(entity.position)
     local key = x .. "/" .. y
     self.chunks[key] = self.chunks[key] or {entities = {}}
-    local existing_entity = self.chunks[key].entities[entity]
+    local existing_entity = self.chunks[key].entities[control_lib.get_entity_key(entity)]
     if existing_entity then
         return
     else
         self:log("new entity in " .. key)
-        self.chunks[key].entities[entity] = entity
+        self.chunks[key].entities[control_lib.get_entity_key(entity)] = entity
         self:log("chunk" .. serpent.block(self.chunks[key]))
-        self:log("entity " .. serpent.block(self.chunks[key].entities[entity]))
+        self:log("entity " .. serpent.block(self.chunks[key].entities[control_lib.get_entity_key(entity)]))
     end
 end
 
@@ -196,7 +197,8 @@ function Surface_manager:unregister_entity(entity) -- luacheck: ignore
     local x, y = Surface_manager.chunk_from_position(entity.position)
     local key = x .. "/" .. y
     self.chunks[key] = self.chunks[key] or {entities = {}}
-    self.chunks[key].entities[entity] = nil
+    self.chunks[key].entities[control_lib.get_entity_key(entity)] = nil
+    
     if custom_lib.table_length(self.chunks[key]) == 0 then
         self.chunks[key] = nil
     end
