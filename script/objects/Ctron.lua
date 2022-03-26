@@ -82,6 +82,10 @@ function Ctron.init_managed_gear()
     log("managed_equipment" .. serpent.block(Ctron.managed_equipment))
 end
 
+function Ctron.update_tech_unlocks()
+    --just update tech unlocks for all forces
+end
+
 -- Equippment Grid Fixer
 --[[Rseding91: "The equipment grid has no idea what entity currently owns it - and may not even be owned by an entity."
     --> on_player_removed_equipment event needs to operate on the grid and it is near impossible to get a related entity

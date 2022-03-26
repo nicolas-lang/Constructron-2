@@ -83,11 +83,5 @@ function Job:destroy()
     global.Jobs[self.id] = nil
 end
 
--- Class Methods
-function Job:destroy()
-    self:log()
-    global.Jobs[self.id] = nil
-end
-
 return Job
 

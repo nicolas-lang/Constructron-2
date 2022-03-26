@@ -7,7 +7,6 @@ local Job = require("__Constructron-2__.script.objects.Job")
 -- class Type Surface_manager, nil members exist just to describe fields
 local Surface_manager = {
     class_name = "Surface_manager"
-    
 }
 Surface_manager.__index = Surface_manager
 
@@ -30,36 +29,32 @@ function Surface_manager:new(surface, force)
     global.surface_managers = global.surface_managers or {}
     if surface.valid then
         self.id = surface.index
-        self.surface_id = surface.index
+        self.surface_index = surface.index
+        self.surface= surface
         if force then
+            self.force = force
             self.id = self.id .. "-" .. force.index
-            self.force_id = force.index
+            self.force_index = force.index
         end
-        global.surface_managers[self.id] =
-            global.surface_managers[self.id] or
-            {
-                surface_id = self.surface_id,
-                force_id = self.force_id,
-                chunks = {},
-                tasks = {}
-            }
-        -- fix/remove or {}
-        global.surface_managers[self.id].chunks = global.surface_managers[self.id].chunks or {}
-        global.surface_managers[self.id].tasks = global.surface_managers[self.id].tasks or {}
-        global.surface_managers[self.id].jobs = global.surface_managers[self.id].jobs or {}
-        self.chunks = global.surface_managers[self.id].chunks
-        self.tasks = global.surface_managers[self.id].tasks
-        self.jobs = global.surface_managers[self.id].jobs
+        self.chunks = {}
+        self.tasks = {}
+        self.jobs = {}
         self.job_actions = {}
+        self.constructrons = {}
+        self.stations = {}
+
+        for k, v in pairs(global.surface_managers[self.id] or {}) do
+            self[k] = v
+        end
+        
+        global.surface_managers[self.id] = global.surface_managers[self.id] or self
         for key, action in pairs(Job.actions) do
             self.job_actions[key] = action(self)
         end
-        self.constructrons = {}
-        self.stations = {}
     end
 end
 
--- Generic Type based initialization
+-- Static Methods
 function Surface_manager.init_globals()
     global.surface_managers = global.surface_managers or {}
 end
@@ -68,21 +63,64 @@ function Surface_manager.chunk_from_position(position)
     return math.floor((position.x or position[1]) / 32), math.floor((position.y or position[2]) / 32)
 end
 
+function Surface_manager.get_surface_manager(surface,force)
+    for _, sm in pairs(global.surface_managers) do
+        if force then
+            if (sm.surface_index == surface.index) and (sm.force_index == force.index) then
+                return sm
+            end
+        else
+            if (sm.surface_index == surface.index) then
+                return sm
+            end
+        end
+        
+    end
+end
+
+function Surface_manager.validate_all()
+    -- also implement validate all for constructrons and stations
+    for _, sm in pairs(global.surface_managers) do
+        if not sm:valid() then
+            sm:destroy()
+        end
+        sm = nil
+    end
+end
+
 -- Class Methods
 function Surface_manager:destroy()
     self:log()
+    -- ToDo call destroy for  all managed entities on force/surface
     global.surface_managers[self.id] = nil
+end
+
+
+
+
+function Surface_manager:valid()
+    self:log()
+    if self.surface.valid == false then 
+        return false
+    end
+    if self.force and self.force.valid == false then 
+        return false
+    end
+    return true
 end
 -------------------------------------------------------------------------------
 --  Surface Processing
 -------------------------------------------------------------------------------
 
 function Surface_manager:add_constructron(constructron)
+    -- todo duplicates
     self.constructrons[constructron] = constructron
 end
 
 function Surface_manager:add_station(station)
+    -- todo duplicates
     self.stations[station] = station
+
 end     
 
 function Surface_manager:update(limit) -- luacheck: ignore
