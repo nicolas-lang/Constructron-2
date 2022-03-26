@@ -5,13 +5,12 @@ local robots = {
         icon = "__base__/graphics/icons/construction-robot.png",
         icon_size = 64,
         icon_mipmaps = 4,
-        flags = {"placeable-off-grid", "not-on-map"},
-        --flags = {"placeable-player", "player-creation", "placeable-off-grid", "not-on-map"},
-        --minable = {mining_time = 0.1, result = "construction-robot"},
+        flags = {"placeable-player", "player-creation", "placeable-off-grid", "not-on-map"},
+        minable = {mining_time = 0.1, result = "construction-robot"},
         resistances = {
             {
                 type = "fire",
-                percent = 100
+                percent = 85
             }
         },
         max_health = 100,
@@ -70,7 +69,12 @@ local robots = {
         icon_mipmaps = 4,
         flags = {"placeable-player", "player-creation", "placeable-off-grid", "not-on-map"},
         minable = {mining_time = 0.1, result = "logistic-robot"},
-        resistances = {},
+        resistances = {
+            {
+                type = "fire",
+                percent = 85
+            }
+        },
         max_health = 100,
         collision_box = {{0, 0}, {0, 0}},
         selection_box = {{-0.5, -1.5}, {0.5, -0.5}},
