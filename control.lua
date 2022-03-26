@@ -46,14 +46,20 @@ local entity_processing_queue =
 -------------------------------------------------------------------------------
 local function setup_surfaces()
     log("control:setup_surfaces")
-    Surface_manager.validate_all()
+
+    for key, sm in pairs(global.surface_managers) do
+        if sm and not sm.surface.valid then
+            global.surface_managers[key] = nil
+        end
+    end
+
     for _, force_name in pairs(player_forces) do
         local force = game.forces[force_name]
         if force and force.valid then
             surface_managers[force.index] = surface_managers[force.index] or {}
             for _, surface in pairs(game.surfaces) do
                 if surface and surface.valid then
-                    surface_managers[force.index][surface.index] = Surface_manager.get_surface_manager(surface, force) or Surface_manager(surface, force)
+                    surface_managers[force.index][surface.index] = Surface_manager(surface, force)
                 end
             end
         end
@@ -89,10 +95,8 @@ local on_init = function()
     Spidertron_Pathfinder.init_globals()
     Surface_manager.init_globals()
     Entity_processing_queue.init_globals()
-    --[[
-        technology_unlocker.reload_tech("spidertron")
-        Task.init_globals()
-    ]]
+
+    Ctron.update_tech_unlocks()
 end
 
 --- main worker for unit/job processing
@@ -171,7 +175,7 @@ local on_player_removed_equipment = function(event)
     end
 end
 
-local on_research = function(_)
+local function on_research(_)
     Ctron.update_tech_unlocks()
 end
 
@@ -191,49 +195,67 @@ end
 -- @param event from factorio framework
 local function on_post_entity_died(event)
     game.print("on_post_entity_died")
-    local entity = event.ghost
-    entity_processing_queue:queue_entity(entity, event.tick, "construction")
+    entity_processing_queue:queue_entity(event.ghost, event.tick, "construction")
 end
 
 --- Event handler on_entity_marked_for_upgrade and on_entity_marked_for_deconstruction
 -- @param event from factorio framework
 local function on_entity_marked(event)
     log("on_entity_marked_for_*")
-    local entity = event.entity
-    entity_processing_queue:queue_entity(entity, event.tick, "upgrade/deconstruction")
+    entity_processing_queue:queue_entity(event.entity, event.tick, "upgrade/deconstruction")
 end
 
 --- Event handler on_entity_damaged
 -- @param event from factorio framework
 local function on_entity_damaged(event)
     log("on_entity_damaged ")
-    local entity = event.entity
-    if event.force == "player" and (event.final_health / (event.final_damage_amount + event.final_health)) < 0.95 then
+    if event.force == "player" and (event.final_health / (event.final_damage_amount + event.final_health)) < 0.90 then
         --custom_lib.table_has_value(player_forces,event.force)
-        entity_processing_queue:queue_entity(entity, event.tick, "repair")
+        entity_processing_queue:queue_entity(event.entity, event.tick, "repair")
     end
 end
 
---[[
-    --- Event handler on_entity_destroyed
+--- Event handler on_entity_destroyed
 -- @param event from factorio framework
-local on_entity_destroyed = function(event)
-    log("on_entity_destroyed")
-    if Ctron.get_registered_unit(event.registration_number) then
-        local unit_number = Ctron.get_registered_unit(event.registration_number)
-        if ctrons[unit_number] then
-            ctrons[unit_number]:destroy()
-            ctrons[unit_number] = nil
+-- @returns nil just to function flow
+local function on_entity_destroyed(event)
+    log("contrl:on_entity_destroyed")
+    log(serpent.block(event))
+    local data = Ctron.get_registered_unit(event.registration_number)
+    if data then
+        return surface_managers[data.surface_index][data.force_index]:constructron_destroyed(data)
+    end
+
+    data = EntityClass["service-station"].get_registered_entity(event.registration_number)
+    if data then
+        return surface_managers[data.surface_index][data.force_index]:station_destroyed(data)
+    end
+end
+
+--- Event handler on_entity_cloned
+-- @param event from factorio framework
+local on_entity_cloned = function(event)
+    local entity = event.source
+    -- todo check if type check makes more sense if done in surfasce manager
+    if EntityClass[entity.name] then
+        --unregister at old surface
+        local obj = EntityClass[entity.name](entity)
+        if entity.name == "service-station" then
+            surface_managers[entity.surface.index][entity.force.index]:remove_station(obj)
+        elseif custom_lib.table_has_value({"ctron-classic", "ctron-steam-powered", "ctron-solar-powered", "ctron-nuclear-powered"}, entity.name) then
+            surface_managers[entity.surface.index][entity.force.index]:remove_constructron(obj)
         end
-    elseif Station.get_registered_entity(event.registration_number) then
-        local unit_number = Station.get_registered_entity(event.registration_number)
-        if stations[unit_number] then
-            stations[unit_number]:destroy()
-            stations[unit_number] = nil
+        --register at new surface
+        entity = event.destination
+        local obj = EntityClass[entity.name](entity)
+        if entity.name == "service-station" then
+            surface_managers[entity.surface.index][entity.force.index]:add_station(obj)
+        elseif custom_lib.table_has_value({"ctron-classic", "ctron-steam-powered", "ctron-solar-powered", "ctron-nuclear-powered"}, entity.name) then
+            obj:set_request_items()
+            surface_managers[entity.surface.index][entity.force.index]:add_constructron(obj)
         end
     end
 end
-]]
 -------------------------------------------------------------------------------
 -- event registration
 -------------------------------------------------------------------------------
@@ -246,8 +268,25 @@ script.on_event(ev.on_tick, on_tick_once) -- replaced by on_nth_tick --> simple_
 script.on_event(ev.on_player_removed_equipment, on_player_removed_equipment)
 script.on_event({ev.on_research_finished, ev.on_research_reversed}, on_research)
 
---script.on_event(ev.on_entity_cloned, ctron.on_entity_cloned)
---script.on_event({ev.on_entity_destroyed, ev.script_raised_destroy}, on_entity_destroyed)
+script.on_event(
+    ev.on_entity_cloned,
+    on_entity_cloned,
+    {
+        {filter = "name", name = "service-station", invert = true, mode = "or"},
+        {filter = "name", name = "ctron-classic", invert = true, mode = "or"},
+        {filter = "name", name = "ctron-steam-powered", invert = true, mode = "or"},
+        {filter = "name", name = "ctron-solar-powered", invert = true, mode = "or"},
+        {filter = "name", name = "ctron-nuclear-powered", invert = true, mode = "or"}
+    }
+)
+script.on_event({ev.on_entity_destroyed, ev.script_raised_destroy}, on_entity_destroyed)
+
+script.on_event(
+    ev.on_script_path_request_finished,
+    (function(event)
+        Spidertron_Pathfinder:on_script_path_request_finished(event)
+    end)
+)
 
 -- entity queue events
 script.on_event(
@@ -259,12 +298,7 @@ script.on_event(
     on_built_entity
 )
 
-script.on_event(
-    ev.on_script_path_request_finished,
-    (function(event)
-        Spidertron_Pathfinder:on_script_path_request_finished(event)
-    end)
-)
+script.on_event(ev.on_post_entity_died, on_post_entity_died)
 
 script.on_event(
     ev.on_entity_damaged,
@@ -298,8 +332,6 @@ script.on_event(
     }
 )
 
-script.on_event(ev.on_post_entity_died, on_post_entity_died)
-
 -------------------------------------------------------------------------------
 -- command & interfaces function
 -------------------------------------------------------------------------------
@@ -307,18 +339,23 @@ script.on_event(ev.on_post_entity_died, on_post_entity_died)
 --- full hardreset of everything
 -- not implemented
 local function reset()
-    game.print("hard reset only partially implemented")
-    -- #1 kill all globals
+    game.print("Constructron: !!! hard reset !!!", {r = 1, g = 0.2, b = 0.2})
+    game.print("Constructron: All surfaces queued for rescan")
+    game.print("Constructron: please be patient...")
     for k, _ in pairs(global) do
         global[k] = nil
     end
-    -- kill all objects
-    --      ctrons = {}
-    --      stations = {}
-    --      surfacesmanagers = {}
-    -- rescan all surfaces for stations and constructrons
-    -- re-queue all ghosts
-    --      rescan_all_surfaces()
+    for force_index, _ in pairs(surface_managers) do
+        for key, surface_manager in pairs(surface_managers[force_index]) do
+            surface_manager:destroy()
+            surface_managers[force_index][key] = nil
+        end
+    end
+    surface_managers = {}
+    on_init()
+    setup_surfaces()
+    rescan_all_surfaces()
+    global.pause_processing = false
 end
 
 --- pauses statemachine and queue processing
@@ -344,14 +381,27 @@ local function rescan_all_surfaces()
         end
     end
 end
+
+--- get_stats
+local function get_stats()
+    local stats = {}
+    for force_index, _ in pairs(surface_managers) do
+        for _, surface_manager in pairs(surface_managers[force_index]) do
+            local surface_stats = surface_manager:get_stats()
+            custom_lib.merge(stats, surface_stats)
+        end
+    end
+    return stats
+end
+
 -------------------------------------------------------------------------------
 -- commands & interfaces
 -------------------------------------------------------------------------------
 local ctron_commands = {
     rescan = rescan_all_surfaces,
     reset = reset,
-    pause = toggle_pause
-    --report = get_status_report
+    pause = toggle_pause,
+    stats = get_stats
 }
 commands.add_command(
     "ctron",

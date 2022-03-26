@@ -28,6 +28,7 @@ end
 -- Class Methods
 function Action:handleStateTransition(job)
     self:log()
+    -- state transitions that do not depend on input state here.
     local newState = nil
     return newState
 end

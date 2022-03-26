@@ -3,7 +3,7 @@ local Action = require("__Constructron-2__.script.objects.actions.Action")
 
 -- class Type Action_task_completed, nil members exist just to describe fields
 local Action_task_completed = {
-    class_name = "Action_task_completed",
+    class_name = "Action_task_completed"
 }
 Action_task_completed.__index = Action_task_completed
 
@@ -21,14 +21,16 @@ setmetatable(
 -- Action_task_completed Constructor
 function Action_task_completed:new(surfacemanager)
     self:log()
-    Action.new(self,surfacemanager)
+    Action.new(self, surfacemanager)
 end
 -- Class Methods
 function Action_task_completed:handleStateTransition(job)
     self:log()
-    local newState = "job_completed"
+    local newState = Action.handleStateTransition(self, job)
+    if not newState then
+        newState = "job_completed"
+    end
     return newState
 end
-
 
 return Action_task_completed

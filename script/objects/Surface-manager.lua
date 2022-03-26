@@ -3,6 +3,7 @@ local Task_construction = require("__Constructron-2__.script.objects.Task-constr
 local Task_delivery = require("__Constructron-2__.script.objects.Task-delivery")
 local Debug = require("__Constructron-2__.script.objects.Debug")
 local Job = require("__Constructron-2__.script.objects.Job")
+local Ctron = require("__Constructron-2__.script.objects.Ctron")
 
 -- class Type Surface_manager, nil members exist just to describe fields
 local Surface_manager = {
@@ -30,7 +31,7 @@ function Surface_manager:new(surface, force)
     if surface.valid then
         self.id = surface.index
         self.surface_index = surface.index
-        self.surface= surface
+        self.surface = surface
         if force then
             self.force = force
             self.id = self.id .. "-" .. force.index
@@ -46,7 +47,7 @@ function Surface_manager:new(surface, force)
         for k, v in pairs(global.surface_managers[self.id] or {}) do
             self[k] = v
         end
-        
+
         global.surface_managers[self.id] = global.surface_managers[self.id] or self
         for key, action in pairs(Job.actions) do
             self.job_actions[key] = action(self)
@@ -63,7 +64,8 @@ function Surface_manager.chunk_from_position(position)
     return math.floor((position.x or position[1]) / 32), math.floor((position.y or position[2]) / 32)
 end
 
-function Surface_manager.get_surface_manager(surface,force)
+--[[
+function Surface_manager.get_surface_manager(surface, force)
     for _, sm in pairs(global.surface_managers) do
         if force then
             if (sm.surface_index == surface.index) and (sm.force_index == force.index) then
@@ -74,19 +76,9 @@ function Surface_manager.get_surface_manager(surface,force)
                 return sm
             end
         end
-        
     end
 end
-
-function Surface_manager.validate_all()
-    -- also implement validate all for constructrons and stations
-    for _, sm in pairs(global.surface_managers) do
-        if not sm:valid() then
-            sm:destroy()
-        end
-        sm = nil
-    end
-end
+]]
 
 -- Class Methods
 function Surface_manager:destroy()
@@ -95,15 +87,12 @@ function Surface_manager:destroy()
     global.surface_managers[self.id] = nil
 end
 
-
-
-
 function Surface_manager:valid()
     self:log()
-    if self.surface.valid == false then 
+    if self.surface.valid == false then
         return false
     end
-    if self.force and self.force.valid == false then 
+    if self.force and self.force.valid == false then
         return false
     end
     return true
@@ -111,6 +100,12 @@ end
 -------------------------------------------------------------------------------
 --  Surface Processing
 -------------------------------------------------------------------------------
+
+function Surface_manager:get_stats()
+    return {
+        [self.surface.name] = {}
+    }
+end
 
 function Surface_manager:add_constructron(constructron)
     -- todo duplicates
@@ -120,23 +115,38 @@ end
 function Surface_manager:add_station(station)
     -- todo duplicates
     self.stations[station] = station
+end
 
-end     
+function Surface_manager:remove_constructron(constructron)
+    self.constructrons[constructron] = nil
+end
+
+function Surface_manager:constructron_destroyed(constructron_data)
+    --self:remove_constructron(...)
+end
+
+function Surface_manager:remove_station(station)
+    self.stations[station] = nil
+end
+
+function Surface_manager:station_destroyed(station_data)
+    --self:remove_station(...)
+end
 
 function Surface_manager:update(limit) -- luacheck: ignore
-    for key , constructron in pairs(self.constructrons) do
+    for key, constructron in pairs(self.constructrons) do
         if constructron:is_valid() then
             constructron:update()
         else
-            game.print("unregistered ctron "..key)
+            game.print("unregistered ctron " .. key)
             self.constructrons[key] = nil
         end
     end
-    for key , station in pairs(self.stations) do
+    for key, station in pairs(self.stations) do
         if station:is_valid() then
             station:update()
         else
-            game.print("unregistered station "..key)
+            game.print("unregistered station " .. key)
             self.stations[key] = nil
         end
     end

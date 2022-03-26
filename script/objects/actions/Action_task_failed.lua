@@ -3,7 +3,7 @@ local Action = require("__Constructron-2__.script.objects.actions.Action")
 
 -- class Type Action_task_failed, nil members exist just to describe fields
 local Action_task_failed = {
-    class_name = "Action_task_failed",
+    class_name = "Action_task_failed"
 }
 Action_task_failed.__index = Action_task_failed
 
@@ -21,15 +21,17 @@ setmetatable(
 -- Action_task_failed Constructor
 function Action_task_failed:new(surfacemanager)
     self:log()
-    Action.new(self,surfacemanager)
+    Action.new(self, surfacemanager)
 end
 
 -- Class Methods
 function Action_task_failed:handleStateTransition(job)
     self:log()
-    local newState = nil
+    local newState = Action.handleStateTransition(self, job)
+    if not newState then
+        newState = nil
+    end
     return newState
 end
-
 
 return Action_task_failed

@@ -3,7 +3,7 @@ local Action = require("__Constructron-2__.script.objects.actions.Action")
 
 -- class Type Action_get_service, nil members exist just to describe fields
 local Action_get_service = {
-    class_name = "Action_get_service",
+    class_name = "Action_get_service"
 }
 Action_get_service.__index = Action_get_service
 
@@ -21,15 +21,17 @@ setmetatable(
 -- Action_get_service Constructor
 function Action_get_service:new(surfacemanager)
     self:log()
-    Action.new(self,surfacemanager)
+    Action.new(self, surfacemanager)
 end
 
 -- Class Methods
 function Action_get_service:handleStateTransition(job)
     self:log()
-    local newState = "next_task"
+    local newState = Action.handleStateTransition(self, job)
+    if not newState then
+        newState = "next_task"
+    end
     return newState
 end
-
 
 return Action_get_service

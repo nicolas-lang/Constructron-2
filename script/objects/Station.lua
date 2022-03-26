@@ -32,7 +32,11 @@ function Station:new(entity)
         self.force = entity.force
 
         self.registration_id = script.register_on_entity_destroyed(entity)
-        global.service_stations.entity_registration[self.registration_id] = entity.unit_number
+        global.service_stations.entity_registration[self.registration_id] = {
+            unit_number = entity.unit_number,
+            surface_index = entity.surface.index,
+            force_index = entity.force.index
+        }
         global.service_stations.entities[entity.unit_number] = entity
     end
 end

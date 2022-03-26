@@ -42,7 +42,11 @@ function Ctron:new(entity)
         self.force = entity.force
         self.last_status_update_tick = game.tick
         self.registration_id = script.register_on_entity_destroyed(entity)
-        global.constructrons.unit_registration[self.registration_id] = entity.unit_number
+        global.constructrons.unit_registration[self.registration_id] = {
+            unit_number = entity.unit_number,
+            surface_index = entity.surface.index,
+            force_index = entity.force.index
+        }
         global.constructrons.units[entity.unit_number] = entity
         self.status = Ctron.status.free
     else
