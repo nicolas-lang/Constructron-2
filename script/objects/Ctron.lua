@@ -123,7 +123,60 @@ function Ctron:is_valid()
     return (self.entity and self.entity.valid)
 end
 
-function Ctron:update() -- luacheck: ignore
+function Ctron:tick_update()
+    if self:is_valid() then
+        local distance = {
+            nearby = 10,
+            at_target = 3
+        }
+
+        -- are we at target?
+        local distance_from_target = self:distance_to(self.target)
+        if self:is_moving() == false and distance_from_target then
+            if distance_from_target < distance.at_target then
+                -- todo implement movement error counter (reset)
+                self.target = nil
+            elseif distance_from_target < distance.nearby then
+                self:go_to(self.target)
+            -- todo implement movement error counter (increment)
+            end
+        end
+
+        --are we in risk of cycloning/overshooting ?
+        local next_waypoint = self.entity.autopilot_destination
+        local distance_from_next_waypoint = self:distance_to(next_waypoint)
+        if next_waypoint and distance_from_next_waypoint < distance.nearby then
+            --ToDo: create slow sticker prototype in data stage
+            --ToDo: attach 75% slow sticker (1.5s)
+            -- see Companion drones for example code
+        end
+    end
+end
+
+function Ctron:status_update()
+    if self:is_valid() then
+        if self.entity.burner and not self.entity.burner.currently_burning then
+            return self:set_status(Ctron.status.no_fuel)
+        end
+
+        if self.target then
+            return self:set_status(Ctron.status.traveling)
+        end
+
+        if self:is_moving() == false and self.construction_enabled and self:robots_inactive() == false then
+            return self:set_status(Ctron.status.constructing)
+        end
+        --[[
+        if in_some_network and item_inventory<item_requests and item_requests avaliable in network_inventory then
+            return self:set_status(Ctron.status.requesting)
+        end
+
+        if () then
+            return self:set_status(Ctron.status.time_out)
+        end
+        ]]
+        return self:set_status(Ctron.status.idle)
+    end
 end
 
 function Ctron:parse_gear_name(name)
@@ -202,6 +255,7 @@ function Ctron:set_status(status)
         end
         global.constructrons.unit_status[self.unit_number] = parsed_status
         self.last_status_update_tick = game.tick
+        return parsed_status
     end
 end
 function Ctron:get_last_status_update_tick()
@@ -365,7 +419,7 @@ function Ctron:is_moving()
 end
 
 function Ctron:distance_to(position)
-    if self:is_valid() then
+    if self:is_valid() and position then
         return math.sqrt((self.entity.position.x - position.x) ^ 2 + (self.entity.position.y - position.y) ^ 2)
     end
 end
@@ -393,13 +447,49 @@ function Ctron:teleport_to(target)
     end
 end
 
+function Ctron:enable_construction()
+    self.construction_enabled = true
+    self.entity.enable_logistics_while_moving = true
+end
+function Ctron:disable_construction()
+    self.construction_enabled = false
+    self.entity.enable_logistics_while_moving = false
+end
+
+function Ctron:robots_inactive()
+    -- i woudl prefer to chekc robots_active --> invert all logic
+    if self:is_valid() then
+        local network = self.entity.logistic_network
+        local cell = network.cells[1]
+        local all_construction_robots = network.all_construction_robots
+        local stationed_bots = cell.stationed_construction_robot_count
+        local charging_robots = cell.charging_robots
+        local to_charge_robots = cell.to_charge_robots
+        local active_bots = (all_construction_robots) - (stationed_bots)
+        if (network and (active_bots == 0)) or ((active_bots >= 1) and not next(charging_robots) and not next(to_charge_robots)) then
+            for i, equipment in pairs(constructron.grid.equipment) do -- does not account for only 1 item in grid
+                if equipment.type == "roboport-equipment" then
+                    if (equipment.energy / equipment.max_energy) < 0.95 then
+                        debug_lib.VisualDebugText("Charging Roboports", constructron, -2)
+                        return false
+                    end
+                end
+            end
+            return true
+        end
+        return false
+    end
+    return true
+end
+
 function Ctron:set_autopilot(path)
     if self:is_valid() then
         --log("set_autopilot")
         self.entity.autopilot_destination = nil
-        self.entity.enable_logistics_while_moving = false
+        self:disable_constrcution()
         for i, waypoint in ipairs(path) do
             self.entity.add_autopilot_destination(waypoint.position)
+            self.target = waypoint.position
         end
         self:set_status("moving")
     end

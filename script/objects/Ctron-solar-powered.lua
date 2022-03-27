@@ -65,6 +65,17 @@ function Ctron_solar_powered:tick_update()
     end
 end
 
+function Ctron_solar_powered:status_update() -- luacheck: ignore
+    if self:is_valid() then
+        local status = Ctron.update(self) 
+        if self.entity.burner and not self.entity.burner.currently_burning then
+            status = Ctron.status.no_energy
+        end
+        return status
+    end
+
+end
+
 function Ctron_solar_powered:set_request_items(request_items, item_whitelist)
     request_items = request_items or {}
     request_items["construction-robot"] = (request_items["construction-robot"] or 0) + self.robots

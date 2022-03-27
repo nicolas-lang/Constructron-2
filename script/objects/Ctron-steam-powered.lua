@@ -1,4 +1,5 @@
 local Ctron = require("__Constructron-2__.script.objects.Ctron")
+local control_lib = require("__Constructron-2__.script.lib.control_lib")
 
 -- class Type Ctron_steam_powered, nil members exist just to describe fields
 local Ctron_steam_powered = {
@@ -11,7 +12,7 @@ local Ctron_steam_powered = {
     },
     managed_equipment_cols = 4,
     fuel = "coal",
-    fuel_count = 20,
+    fuel_stacks = 2,
     robots = 5
 }
 
@@ -60,9 +61,43 @@ end
 
 function Ctron_steam_powered:set_request_items(request_items, item_whitelist)
     request_items = request_items or {}
-    request_items[self.fuel] = (request_items[self.fuel] or 0) + self.fuel_count
+    request_items[self.fuel] = (request_items[self.fuel] or 0) + self.fuel_stacks * control_lib.get_stack_size(self.fuel)
     request_items["construction-robot"] = (request_items["construction-robot"] or 0) + self.robots
     Ctron.set_request_items(self, request_items, item_whitelist)
 end
 
+function Ctron_steam_powered:enable_constrcution()
+    Ctron.enable_constrcution(self)
+end
+function Ctron_steam_powered:disable_constrcution()
+    Ctron.enable_constrcution(self)
+end
+
+--[[
+function Companion:set_robot_stack()
+  local inventory = self:get_inventory()
+  if not inventory.set_filter(21,"companion-construction-robot") then
+    inventory[21].clear()
+    inventory.set_filter(21,"companion-construction-robot")
+  end
+
+  if self.can_construct then
+    inventory[21].set_stack({name = "companion-construction-robot", count = 100})
+  else
+    inventory[21].clear()
+  end
+end
+
+function Companion:clear_robot_stack()
+  local inventory = self:get_inventory()
+  if not inventory.set_filter(21,"companion-construction-robot") then
+    inventory[21].clear()
+    inventory.set_filter(21,"companion-construction-robot")
+  end
+  inventory[21].clear()
+end
+]]
+
 return Ctron_steam_powered
+
+

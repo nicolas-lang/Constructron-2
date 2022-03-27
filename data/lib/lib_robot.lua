@@ -235,6 +235,7 @@ lib_robots.templates = {
         max_energy = "1.5MJ",
         energy_per_tick = "0.05kJ",
         speed_multiplier_when_out_of_energy = 0.5,
+        selectable_in_game = false,
         energy_per_move = "5kJ",
         min_to_charge = 0.2,
         max_to_charge = 0.95,
@@ -277,10 +278,10 @@ lib_robots.templates = {
         name = nil,
         place_result = nil,
         flags = {"hidden"},
-        icon = "__core__/graphics/empty.png",
-        icon_size = 1,
+        icon = "__base__/graphics/icons/construction-robot.png",
+        icon_size = 64,
         order = "z",
-        stack_size = 1
+        stack_size = 500
     }
 }
 
