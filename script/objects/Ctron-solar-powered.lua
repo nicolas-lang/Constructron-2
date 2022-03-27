@@ -1,4 +1,5 @@
 local Ctron = require("__Constructron-2__.script.objects.Ctron")
+local control_lib = require("__Constructron-2__.script.lib.control_lib")
 
 -- class Type Ctron_solar_powered, nil members exist just to describe fields
 local Ctron_solar_powered = {

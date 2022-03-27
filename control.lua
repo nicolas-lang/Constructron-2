@@ -250,7 +250,7 @@ local function on_entity_cloned(event)
     local entity = event.destination
     if EntityClass[entity.name] then
         --register at new surface
-        obj = EntityClass[entity.name](entity)
+        local obj = EntityClass[entity.name](entity)
         if entity.name == "service-station" then
             surface_managers[entity.surface.index][entity.force.index]:add_station(obj)
         else

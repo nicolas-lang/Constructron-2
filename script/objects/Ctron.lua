@@ -457,7 +457,7 @@ function Ctron:disable_construction()
 end
 
 function Ctron:robots_inactive()
-    -- i woudl prefer to chekc robots_active --> invert all logic
+    -- i would prefer to check robots_active --> invert all logic
     if self:is_valid() then
         local network = self.entity.logistic_network
         local cell = network.cells[1]
@@ -467,10 +467,9 @@ function Ctron:robots_inactive()
         local to_charge_robots = cell.to_charge_robots
         local active_bots = (all_construction_robots) - (stationed_bots)
         if (network and (active_bots == 0)) or ((active_bots >= 1) and not next(charging_robots) and not next(to_charge_robots)) then
-            for i, equipment in pairs(constructron.grid.equipment) do -- does not account for only 1 item in grid
+            for i, equipment in pairs(self.entity.grid.equipment) do -- does not account for only 1 item in grid
                 if equipment.type == "roboport-equipment" then
-                    if (equipment.energy / equipment.max_energy) < 0.95 then
-                        debug_lib.VisualDebugText("Charging Roboports", constructron, -2)
+                    if (equipment.energy / equipment.max_energy) < 1 then
                         return false
                     end
                 end

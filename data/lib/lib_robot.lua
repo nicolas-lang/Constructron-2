@@ -1,3 +1,4 @@
+local util = require("util")
 local cust_lib = require("__Constructron-2__.data.lib.custom_lib")
 local hit_effects = require("__base__.prototypes.entity.hit-effects")
 local sounds = require("__base__.prototypes.entity.sounds")
