@@ -65,9 +65,9 @@ function Ctron_solar_powered:tick_update()
     end
 end
 
-function Ctron_solar_powered:status_update() -- luacheck: ignore
+function Ctron_solar_powered:status_update()
     if self:is_valid() then
-        local status = Ctron.update(self) 
+        local status = Ctron.status_update(self) 
         if self.entity.burner and not self.entity.burner.currently_burning then
             status = Ctron.status.no_energy
         end
