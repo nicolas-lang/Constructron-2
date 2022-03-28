@@ -1,5 +1,4 @@
 local Ctron = require("__Constructron-2__.script.objects.Ctron")
-local control_lib = require("__Constructron-2__.script.lib.control_lib")
 
 -- class Type Ctron_solar_powered, nil members exist just to describe fields
 local Ctron_solar_powered = {
@@ -68,7 +67,7 @@ end
 
 function Ctron_solar_powered:status_update()
     if self:is_valid() then
-        local status = Ctron.status_update(self) 
+        local status = Ctron.status_update(self)
         if self.entity.burner and not self.entity.burner.currently_burning then
             status = Ctron.status.no_energy
         end

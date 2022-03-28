@@ -12,7 +12,6 @@ local Ctron_steam_powered = {
     },
     managed_equipment_cols = 4,
     fuel = "coal",
-    fuel_stacks = 2,
     robots = 5
 }
 
@@ -61,7 +60,7 @@ end
 
 function Ctron_steam_powered:set_request_items(request_items, item_whitelist)
     request_items = request_items or {}
-    request_items[self.fuel] = (request_items[self.fuel] or 0) + self.fuel_stacks * control_lib.get_stack_size(self.fuel)
+    request_items[self.fuel] = (request_items[self.fuel] or 0) + control_lib.get_stack_size(self.fuel) * #(self.entity.burner.inventory)
     request_items["construction-robot"] = (request_items["construction-robot"] or 0) + self.robots
     Ctron.set_request_items(self, request_items, item_whitelist)
 end
@@ -97,7 +96,4 @@ function Companion:clear_robot_stack()
   inventory[21].clear()
 end
 ]]
-
 return Ctron_steam_powered
-
-

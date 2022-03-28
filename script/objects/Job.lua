@@ -32,7 +32,7 @@ setmetatable(
     }
 )
 
-Job.state = {
+Job.status = {
     job_new = 10,
     next_task = 20,
     do_task = 30,
@@ -53,8 +53,8 @@ function Job:new(obj)
     global.Jobs = global.Jobs or {}
     self.id = self.id or #(global.Jobs) + 1
     global.Jobs[self.id] = self
-    self.entities = {}
-    self.state = Job.state.job_new
+    self.tasks = {}
+    self.status = Job.status.job_new
     self:log("id " .. self.id)
 end
 
@@ -63,22 +63,59 @@ function Job.init_globals()
     global.Jobs = global.Jobs or {}
 end
 
-function Job:set_state(state)
-    self.state = Job.state[state]
+function Job:set_status(status)
+        local parsed_status
+        if type(status) == "number" then
+            for _, value in pairs(Job.status) do
+                if value == status then
+                    parsed_status = status
+                end
+            end
+        else
+            parsed_status = Job.status[status]
+        end
+        if not parsed_status then
+            log("set_status:unknown status: " .. (status or "nil"))
+        end
+        self.status = parsed_status
 end
 
-function Job:get_state()
-    for k, v in pairs(Job.state) do
-        if self.state == v then
+function Job:get_status()
+    for k, v in pairs(Job.status) do
+        if self:get_status_id() == v then
             return k
         end
     end
 end
 
+function Job:get_status_id()
+    return self.status
+end
+
 -- Class Methods
 function Job:destroy()
     self:log()
+    --check all tasks for unifinished entities and re-queue
+    if self.constructron and self.constructron:is_valid() then
+        self.constructron:assign_job(nil)
+    end
     global.Jobs[self.id] = nil
+end
+
+function Job:add_task(task)
+    self:log()
+    log(serpent.block(self))
+    self.tasks[#(self.tasks) + 1] = task
+    self.active_task = self.active_task or 1
+end
+
+-- Class Methods
+function Job:assign_constructron(constructron)
+    self:log()
+    if constructron:is_valid() then
+        self.constructron = constructron
+        constructron:assign_job(self.id)
+    end
 end
 
 return Job

@@ -1,4 +1,5 @@
-﻿--local util = require("__core__.lualib.util")
+﻿local Debug = require("__Constructron-2__.script.objects.Debug")
+--local util = require("__core__.lualib.util")
 local custom_lib = require("__Constructron-2__.data.lib.custom_lib")
 
 -- class Type Ctron, nil members exist just to describe fields
@@ -23,6 +24,7 @@ Ctron.__index = Ctron
 setmetatable(
     Ctron,
     {
+        __index = Debug, -- this is what makes the inheritance work
         __call = function(cls, ...)
             local self = setmetatable({}, cls)
             self:new(...)
@@ -34,6 +36,7 @@ setmetatable(
 -- Ctron Constructor
 function Ctron:new(entity)
     log("Ctron.new")
+    Debug.new(self,nil)
     if entity and entity.valid then
         self.type = "Ctron"
         self.entity = entity
@@ -130,25 +133,33 @@ function Ctron:tick_update()
             at_target = 3
         }
 
-        -- are we at target?
-        local distance_from_target = self:distance_to(self.target)
-        if self:is_moving() == false and distance_from_target then
-            if distance_from_target < distance.at_target then
-                -- todo implement movement error counter (reset)
-                self.target = nil
-            elseif distance_from_target < distance.nearby then
-                self:go_to(self.target)
-            -- todo implement movement error counter (increment)
+        -- do we have a target?
+        if self.target then
+            -- are we at target?
+            if self:is_moving() == false then
+                local distance_from_target = self:distance_to(self.target)
+                if distance_from_target then
+                    if distance_from_target < distance.at_target then
+                        -- todo implement movement error counter (reset)
+                        self.target = nil
+                    elseif distance_from_target < distance.nearby then
+                        self:go_to(self.target)
+                    -- todo implement movement error counter (increment)
+                    end
+                end
             end
-        end
 
-        --are we in risk of cycloning/overshooting ?
-        local next_waypoint = self.entity.autopilot_destination
-        local distance_from_next_waypoint = self:distance_to(next_waypoint)
-        if next_waypoint and distance_from_next_waypoint < distance.nearby then
-            --ToDo: create slow sticker prototype in data stage
-            --ToDo: attach 75% slow sticker (1.5s)
-            -- see Companion drones for example code
+            --are we in risk of cycloning/overshooting ?
+            local next_waypoint = self.entity.autopilot_destination
+            if next_waypoint then
+                local distance_from_next_waypoint = self:distance_to(next_waypoint)
+                if distance_from_next_waypoint < distance.nearby then
+                    --ToDo: create slow sticker prototype in data stage
+                    --ToDo: attach 75% slow sticker (1.5s)
+                    -- see Companion drones for example code
+                    log("sticker")
+                end
+            end
         end
     end
 end
@@ -235,6 +246,17 @@ function Ctron:setup_gear()
             end
         end
     end
+end
+
+
+function Ctron:get_job_id()
+    self:log()
+    return self.job_id
+end
+
+function Ctron:assign_job(job_id)
+    self:log()
+    self.job_id = job_id
 end
 
 function Ctron:set_status(status)
@@ -455,30 +477,23 @@ function Ctron:disable_construction()
     self.construction_enabled = false
     self.entity.enable_logistics_while_moving = false
 end
-
-function Ctron:robots_inactive()
-    -- i would prefer to check robots_active --> invert all logic
+function Ctron:robots_active()
     if self:is_valid() then
         local network = self.entity.logistic_network
-        local cell = network.cells[1]
-        local all_construction_robots = network.all_construction_robots
-        local stationed_bots = cell.stationed_construction_robot_count
-        local charging_robots = cell.charging_robots
-        local to_charge_robots = cell.to_charge_robots
-        local active_bots = (all_construction_robots) - (stationed_bots)
-        if (network and (active_bots == 0)) or ((active_bots >= 1) and not next(charging_robots) and not next(to_charge_robots)) then
-            for i, equipment in pairs(self.entity.grid.equipment) do -- does not account for only 1 item in grid
-                if equipment.type == "roboport-equipment" then
-                    if (equipment.energy / equipment.max_energy) < 1 then
-                        return false
-                    end
-                end
+        if network then
+            local cell = network.cells[1]
+            local all_construction_robots = network.all_construction_robots
+            local stationed_bots = cell.stationed_construction_robot_count
+            local active_bots = (all_construction_robots) - (stationed_bots)
+            if (network and (active_bots > 0)) then
+                return true
             end
-            return true
+            return false
         end
-        return false
     end
-    return true
+end
+function Ctron:robots_inactive()
+    return (Ctron:robots_active() == false)
 end
 
 function Ctron:set_autopilot(path)
@@ -490,7 +505,7 @@ function Ctron:set_autopilot(path)
             self.entity.add_autopilot_destination(waypoint.position)
             self.target = waypoint.position
         end
-        self:set_status("moving")
+        self:set_status(self.status.traveling)
     end
 end
 

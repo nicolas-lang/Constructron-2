@@ -87,6 +87,24 @@ end
 -------------------------------------------------------------------------------
 --  Surface Processing
 -------------------------------------------------------------------------------
+function Surface_manager:tick_update()
+    for key, constructron in pairs(self.constructrons) do
+        if constructron:is_valid() then
+            constructron:tick_update()
+        else
+            game.print("unregistered ctron " .. key)
+            constructron:destroy()
+            self.constructrons[key] = nil
+        end
+    end
+    for key, station in pairs(self.stations) do
+        if not station:is_valid() then
+            game.print("unregistered station " .. key)
+            station:destroy()
+            self.stations[key] = nil
+        end
+    end
+end
 
 function Surface_manager:get_stats()
     return {
@@ -121,28 +139,9 @@ function Surface_manager:station_destroyed(station_data) -- luacheck: ignore
     --self:remove_station(...)
 end
 
-function Surface_manager:update(limit) -- luacheck: ignore
-    for key, constructron in pairs(self.constructrons) do
-        if constructron:is_valid() then
-            constructron:update()
-        else
-            game.print("unregistered ctron " .. key)
-            self.constructrons[key] = nil
-        end
-    end
-    for key, station in pairs(self.stations) do
-        if station:is_valid() then
-            station:update()
-        else
-            game.print("unregistered station " .. key)
-            self.stations[key] = nil
-        end
-    end
-end
-
 function Surface_manager:get_free_constructron() -- luacheck: ignore
     for _, constructron in pairs(self.constructrons) do
-        if constructron:get_status_id() == Ctron.status.free then
+        if not constructron:get_job_id() then
             return constructron
         end
     end
@@ -241,13 +240,16 @@ function Surface_manager:run_jobs()
         -- each job state has a state-named action class which executes a job based action and returnes a state transition
         -- the state action is expected to work only on surfacemanager and job objects and their members
         -- The surfacemanager provides stations and surface related information, the job has task and ctron childs
-        local state_based_action = self.job_actions[job:get_state()]
+        log("job.id: " .. job.id)
+        log("job.status: " .. job:get_status())
+        local state_based_action = self.job_actions[job:get_status()]
         local new_state = state_based_action.handleStateTransition(job)
+        log("job.new_state: " .. new_state)
         if new_state then
-            job:set_state()
+            job:set_status(new_state)
         end
-        game.print(job:get_state())
-        if job:get_state() == Job.state.job_completed then
+        game.print(job:get_status())
+        if job:get_status_id() == Job.status.job_completed then
             job:destroy()
             self.jobs[key] = nil
         end
@@ -256,16 +258,29 @@ end
 
 function Surface_manager:assign_jobs(limit)
     self:log()
+    if not next(self.constructrons)then
+        log("no constructrons on surface")
+        return
+    end
+    if not next(self.stations) then
+        log("no stations on surface")
+        return
+    end
+
     limit = limit or 10
     local c = 0
     local key, task = next(self.tasks)
     local unit = self:get_free_constructron()
+
     while task and unit and c < limit do
+        log("assign_job")
         --  select 1st free constructron
         unit:set_status(Ctron.status.idle)
         local job = Job()
+        job:assign_constructron(unit)
+        
         --just simple 1:1  - fix later
-        job.add_task(task)
+        job:add_task(task)
         self.tasks[key] = nil
         self.jobs[#(self.jobs) + 1] = job
         --ToDo

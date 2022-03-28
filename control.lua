@@ -102,11 +102,21 @@ local function on_init()
     Spidertron_Pathfinder.init_globals()
     Surface_manager.init_globals()
     Entity_processing_queue.init_globals()
-    entity_processing_queue = Entity_processing_queue(assign_entity_to_surface)
 
     technology_unlocker.reload_tech("spidertron")
     Ctron.update_tech_unlocks()
 
+end
+
+--- main worker unit updates
+-- @param event from factorio framework
+local function on_nth_tick_300(_)
+    log("control:on_nth_tick_300")
+    for force_index, _ in pairs(surface_managers) do
+        for _, surface_manager in pairs(surface_managers[force_index]) do
+            surface_manager:tick_update()
+        end
+    end
 end
 
 --- main worker for unit/job processing
@@ -143,6 +153,7 @@ end
 local function on_tick_once(_)
     log("control:on_tick_once")
     Ctron.init_managed_gear()
+    entity_processing_queue = Entity_processing_queue(assign_entity_to_surface)
     Spidertron_Pathfinder.check_pathfinder_requests_timeout()
 
     --create surface-manager objects
@@ -168,6 +179,8 @@ local function on_tick_once(_)
     -- unschduel self and schedule main worker
     script.on_event(defines.events.on_tick, nil)
     script.on_nth_tick(120, on_nth_tick_60)
+    script.on_nth_tick(300, on_nth_tick_300)
+    
 end
 
 --- Event handler on_player_removed_equipment

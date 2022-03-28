@@ -131,7 +131,7 @@ function lib_spider.create_spidertron(arguments)
         flags = {"placeable-neutral", "player-creation", "placeable-off-grid"},
         collision_mask = {},
         minable = {
-            mining_time = 1,
+            mining_time = 0.5,
             result = mining_result
         },
         max_health = 3000,

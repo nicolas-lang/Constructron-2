@@ -51,6 +51,22 @@ function Task:add_entity(entity)
     self.entities[control_lib.get_entity_key(entity)] = entity
 end
 
+function Task:get_position()
+    self:log()
+    local position = {x = 0, y = 0}
+    if next(self.entities) then
+        local c = 0
+        for _, entity in pairs(self.entities) do
+            position.x = entity.position.x
+            position.y = entity.position.y
+            c = c + 1
+        end
+        position.x = math.floor(position.x / c * 1000 + 0.5) / 1000
+        position.y = math.floor(position.y / c * 1000 + 0.5) / 1000
+        return position
+    end
+end
+
 function Task:get_items()
     self:log()
     if next(self.items) then
