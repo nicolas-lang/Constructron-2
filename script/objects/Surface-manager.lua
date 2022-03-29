@@ -243,7 +243,7 @@ function Surface_manager:run_jobs()
         log("job.id: " .. job.id)
         log("job.status: " .. job:get_status())
         local state_based_action = self.job_actions[job:get_status()]
-        local new_state = state_based_action.handleStateTransition(job)
+        local new_state = state_based_action:handleStateTransition(job)
         log("job.new_state: " .. new_state)
         if new_state then
             job:set_status(new_state)

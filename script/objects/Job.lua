@@ -1,5 +1,5 @@
---local custom_lib = require("__Constructron-2__.data.lib.custom_lib")
 local Debug = require("__Constructron-2__.script.objects.Debug")
+local custom_lib = require("__Constructron-2__.data.lib.custom_lib")
 
 -- class Type Job, nil members exist just to describe fields
 local Job = {
@@ -62,7 +62,7 @@ end
 function Job.init_globals()
     global.Jobs = global.Jobs or {}
 end
-
+-- Class Methods
 function Job:set_status(status)
         local parsed_status
         if type(status) == "number" then
@@ -92,7 +92,7 @@ function Job:get_status_id()
     return self.status
 end
 
--- Class Methods
+
 function Job:destroy()
     self:log()
     --check all tasks for unifinished entities and re-queue
@@ -109,13 +109,22 @@ function Job:add_task(task)
     self.active_task = self.active_task or 1
 end
 
--- Class Methods
 function Job:assign_constructron(constructron)
     self:log()
     if constructron:is_valid() then
         self.constructron = constructron
         constructron:assign_job(self.id)
     end
+end
+
+function Job:get_items()
+    self:log()
+    local items = {}
+    for _, task in pairs(self.tasks) do
+        task:update()
+        custom_lib.merge_add(items,task:get_items())
+    end
+    return items
 end
 
 return Job
