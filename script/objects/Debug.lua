@@ -30,14 +30,12 @@ function Debug:log(o)
             msg = " " .. serpent.block(o)
         end
         local func = debug.getinfo(2, "n").name
-        --[[
         local file = debug.getinfo(2, "S").source
         local line = debug.getinfo(2, "S").linedefined
         local logMessage = self.class_name .. ":" .. func .. msg
         log(logMessage)
-        logMessage = file .. " (" .. line .. ") " .. logMessage
-        game.write_file(self.logfileName, logMessage .. "\r\n", true)
-        ]]
+        --logMessage = file .. " (" .. line .. ") " .. logMessage
+        --game.write_file(self.logfileName, logMessage .. "\r\n", true)
     end
 end
 
