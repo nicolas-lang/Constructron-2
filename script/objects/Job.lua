@@ -64,20 +64,28 @@ function Job.init_globals()
 end
 -- Class Methods
 function Job:set_status(status)
+    self:log()
+
+    local text_status
     local parsed_status
     if type(status) == "number" then
-        for _, value in pairs(Job.status) do
+        for key, value in pairs(Job.status) do
             if value == status then
                 parsed_status = status
+                text_status = key
             end
         end
     else
+        text_status = status
         parsed_status = Job.status[status]
     end
     if not parsed_status then
         log("set_status:unknown status: " .. (status or "nil"))
     end
     self.current_status = parsed_status
+    if self.constructron then
+        self:attach_text(self.constructron.entity, text_status, -2, 1.2)
+    end
 end
 
 function Job:get_status()
