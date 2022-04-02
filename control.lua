@@ -106,7 +106,6 @@ local function on_init()
 
     technology_unlocker.reload_tech("spidertron")
     Ctron.update_tech_unlocks()
-
 end
 
 --- main worker unit updates
@@ -181,7 +180,6 @@ local function on_tick_once(_)
     script.on_event(defines.events.on_tick, nil)
     script.on_nth_tick(120, on_nth_tick_60)
     script.on_nth_tick(300, on_nth_tick_300)
-    
 end
 
 --- Event handler on_player_removed_equipment
@@ -295,7 +293,6 @@ script.on_event(
         {filter = "name", name = "ctron-solar-powered", invert = true, mode = "or"},
         {filter = "name", name = "ctron-nuclear-powered", invert = true, mode = "or"},
         {filter = "name", name = "ctron-rocket-powered", invert = true, mode = "or"}
-
     }
 )
 script.on_event({ev.on_entity_destroyed, ev.script_raised_destroy}, on_entity_destroyed)

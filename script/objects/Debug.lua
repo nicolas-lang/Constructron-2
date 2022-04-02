@@ -39,27 +39,29 @@ function Debug:log(o)
     end
 end
 
-function Debug:attach_text(entity, message , offset, ttl)
-    if not entity or not entity.valid then
-        return
+function Debug:attach_text(entity, message, offset, ttl)
+    if self and self.debug then
+        if not entity or not entity.valid then
+            return
+        end
+        if not offset then
+            offset = 0
+        end
+        if not ttl then
+            ttl = 1
+        else
+            ttl = ttl * 60
+        end
+        rendering.draw_text {
+            text = message,
+            target = entity,
+            filled = true,
+            surface = entity.surface,
+            time_to_live = ttl,
+            target_offset = {0, offset},
+            alignment = "center",
+            color = {r = 255, g = 255, b = 255, a = 255}
+        }
     end
-    if not offset then
-        offset = 0
-    end
-    if not ttl then
-        ttl = 1
-    else
-        ttl = ttl * 60
-    end
-    rendering.draw_text {
-        text = message,
-        target = entity,
-        filled = true,
-        surface = entity.surface,
-        time_to_live = ttl,
-        target_offset = {0, offset},
-        alignment = "center",
-        color = {r = 255, g = 255, b = 255, a = 255}
-    }
 end
 return Debug

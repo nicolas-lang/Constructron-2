@@ -1,4 +1,4 @@
-local custom_lib = require("__Constructron-2__.data.lib.custom_lib")
+--local custom_lib = require("__Constructron-2__.data.lib.custom_lib")
 local Debug = require("__Constructron-2__.script.objects.Debug")
 local Ctron = require("__Constructron-2__.script.objects.Ctron")
 

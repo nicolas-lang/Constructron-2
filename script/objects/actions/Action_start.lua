@@ -1,6 +1,6 @@
-local custom_lib = require("__Constructron-2__.data.lib.custom_lib")
+--local custom_lib = require("__Constructron-2__.data.lib.custom_lib")
 local Action = require("__Constructron-2__.script.objects.actions.Action")
-local Ctron = require("__Constructron-2__.script.objects.Ctron")
+--local Ctron = require("__Constructron-2__.script.objects.Ctron")
 
 -- class Type Action_start, nil members exist just to describe fields
 local Action_start = {
@@ -46,6 +46,7 @@ function Action_start:handleStateTransition(job)
                 log(item .. "?:" .. count)
                 --if it is required for construction we want at least 1
                 --if it is a decon result 0 is fine
+                -- add some kind of check to ensure at least 1 service station visit
                 if (count <= 0) or (inventory[item] and inventory[item] > 0) then
                     log(item .. "!:" .. (inventory[item] or "-"))
                     return job.status.do_task
@@ -53,7 +54,9 @@ function Action_start:handleStateTransition(job)
             end
             log("no items for current task")
             for item, count in pairs(job_items) do
-                if inventory[item] and inventory[item] > 0 then
+                -- add some kind of check to ensure at least 1 service station visit
+                -- if it is a mixed decon/cst job cst will not get items in first loop
+                if  (count <= 0) or (inventory[item] and inventory[item] > 0) then
                     log("try next task")
                     job:next_task(false)
                     return nil

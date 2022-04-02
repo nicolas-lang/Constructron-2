@@ -1,3 +1,4 @@
+local util = require("util")
 local lib_spider = require("__Constructron-2__.data.lib.lib_spider")
 lib_spider.spidertron_animations.image_base = "__Constructron-2__/graphics/constructron/bulwark/"
 

@@ -102,7 +102,6 @@ end
 
 function Job:update()
     self:log()
-    local items = {}
     --Check all Tasks/entities
     for key, task in pairs(self.tasks) do
         task:update()
