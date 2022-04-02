@@ -37,7 +37,8 @@ function Ctron_steam_powered:new(entity)
 end
 
 function Ctron_steam_powered:tick_update()
-    Ctron:tick_update()
+    self:log()
+    Ctron.tick_update(self)
     if self:is_valid() then
         local transfer_efficiency = 0.5
         local grid = self.entity.grid
@@ -65,14 +66,15 @@ function Ctron_steam_powered:set_request_items(request_items, item_whitelist)
     Ctron.set_request_items(self, request_items, item_whitelist)
 end
 
+--[[
 function Ctron_steam_powered:enable_constrcution()
-    Ctron.enable_constrcution(self)
+    Ctron.enable_construction(self)
 end
 function Ctron_steam_powered:disable_constrcution()
     Ctron.enable_constrcution(self)
 end
 
---[[
+
 function Companion:set_robot_stack()
   local inventory = self:get_inventory()
   if not inventory.set_filter(21,"companion-construction-robot") then

@@ -29,13 +29,13 @@ function Debug:log(o)
         elseif o then
             msg = " " .. serpent.block(o)
         end
-        local func = debug.getinfo(2, "n").name
-        local file = debug.getinfo(2, "S").source
-        local line = debug.getinfo(2, "S").linedefined
-        local logMessage = self.class_name .. ":" .. func .. msg
+        local func = (debug.getinfo(2, "n").name) or ""
+        local file = (debug.getinfo(2, "S").source) or ""
+        local line = (debug.getinfo(2, "S").linedefined) or ""
+        local logMessage = self.class_name .. ":" .. func .. " " .. msg
+        logMessage = file .. " (" .. line .. ") " .. logMessage
         log(logMessage)
-        --logMessage = file .. " (" .. line .. ") " .. logMessage
-        --game.write_file(self.logfileName, logMessage .. "\r\n", true)
+    -- game.write_file(self.logfileName, logMessage .. "\r\n", true)
     end
 end
 

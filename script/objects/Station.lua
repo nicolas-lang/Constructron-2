@@ -1,3 +1,5 @@
+local Debug = require("__Constructron-2__.script.objects.Debug")
+
 -- class Type Station, nil members exist just to describe fields
 local Station = {
     class_name = "Station",
@@ -14,6 +16,7 @@ Station.__index = Station
 setmetatable(
     Station,
     {
+        __index = Debug, -- this is what makes the inheritance work
         __call = function(cls, ...)
             local self = setmetatable({}, cls)
             self:new(...)
@@ -24,7 +27,7 @@ setmetatable(
 
 -- Station Constructor
 function Station:new(entity)
-    log("Station.new")
+    self:log()
     if entity and entity.valid then
         self.entity = entity
         self.unit_number = entity.unit_number
@@ -53,15 +56,18 @@ function Station.get_registered_entity(entity_registration_number)
 end
 -- Class Methods
 function Station:destroy()
+    self:log()
     global.service_stations.entity_registration[self.registration_id] = nil
     global.service_stations.entities[self.unit_number] = nil
 end
 
 function Station:is_valid()
+    self:log()
     return (self.entity and self.entity.valid)
 end
 
 function Station:get_inventory(requested_items)
+    self:log()
     local items = {}
     if self:is_valid() then
         for item, _ in pairs(requested_items) do
@@ -72,6 +78,7 @@ function Station:get_inventory(requested_items)
 end
 
 function Station:get_position()
+    self:log()
     if self:is_valid() then
         return {
             position = self.entity.position,
@@ -81,12 +88,14 @@ function Station:get_position()
 end
 
 function Station:distance_to(position)
+    self:log()
     if self:is_valid() and position then
         return math.sqrt((self.entity.position.x - position.x) ^ 2 + (self.entity.position.y - position.y) ^ 2)
     end
 end
 
 function Station:get_logistic_network_id()
+    self:log()
     if self:is_valid() then
         global.logistic_networks = global.logistic_networks or {}
         for id, n in pairs(global.logistic_networks) do

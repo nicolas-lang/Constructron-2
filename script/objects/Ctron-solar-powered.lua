@@ -34,7 +34,7 @@ function Ctron_solar_powered:new(entity)
 end
 
 function Ctron_solar_powered:tick_update()
-    Ctron:tick_update()
+    Ctron.tick_update(self)
     if self.entity.valid then
         local grid = self.entity.grid
         if grid.available_in_batteries > 0 then

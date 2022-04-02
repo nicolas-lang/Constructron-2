@@ -52,16 +52,18 @@ end
 function me.merge_add(a, b)
     if type(a) == "table" and type(b) == "table" then
         for k, v in pairs(b) do
-            if type(v) == "table" and type(a[k] or false) == "table" then
+            if type(v) == "table" and type(a[k] or v) == "table" then
                 me.merge_add(a[k], v)
             else
-                if type(v or false) == "number" and type(a[k] or false) == "number" then
+                if type(v or false) == "number" and type(a[k] or v) == "number" then
                     a[k] = (a[k] or 0) + v
-                elseif type(v or false) == "string" or type(a[k] or false) == "string" then
+                elseif type(v or false) == "string" or type(a[k] or v) == "string" then
                     a[k] = tostring(a[k] or "") .. tostring(v)
                 end
             end
         end
+    elseif a==nil then
+        a = b
     end
     return a
 end

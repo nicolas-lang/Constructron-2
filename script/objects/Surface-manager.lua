@@ -87,7 +87,10 @@ end
 -------------------------------------------------------------------------------
 --  Surface Processing
 -------------------------------------------------------------------------------
+
+
 function Surface_manager:tick_update()
+    self:log()
     for key, constructron in pairs(self.constructrons) do
         if constructron:is_valid() then
             constructron:tick_update()
@@ -107,24 +110,29 @@ function Surface_manager:tick_update()
 end
 
 function Surface_manager:get_stats()
+    self:log()
     return {
         [self.surface.name] = {}
     }
 end
 
 function Surface_manager:add_constructron(constructron)
+    self:log(constructron.unit_number)
     self.constructrons[constructron.unit_number] = constructron
 end
 
 function Surface_manager:add_station(station)
+    self:log(station.unit_number)
     self.stations[station.unit_number] = station
 end
 
 function Surface_manager:remove_constructron(constructron)
+    self:log(constructron.unit_number)
     self.constructrons[constructron.unit_number] = nil
 end
 
 function Surface_manager:constructron_destroyed(constructron_data) -- luacheck: ignore
+    self:log()
     --if self.constructrons[constructron_data.unit_number] then
     --    self.constructrons[constructron_data.unit_number]:destroy()
     --    self.constructrons[constructron_data.unit_number] = nil
@@ -132,18 +140,40 @@ function Surface_manager:constructron_destroyed(constructron_data) -- luacheck: 
 end
 
 function Surface_manager:remove_station(station)
+    self:log(station.unit_number)
     self.stations[station.unit_number] = nil
 end
 
 function Surface_manager:station_destroyed(station_data) -- luacheck: ignore
+    self:log()
     --self:remove_station(...)
 end
 
 function Surface_manager:get_free_constructron() -- luacheck: ignore
+    self:log()
     for _, constructron in pairs(self.constructrons) do
         if not constructron:get_job_id() then
             return constructron
         end
+    end
+end
+
+function Surface_manager:get_station(items, position) -- luacheck: ignore
+    self:log()
+    -- score stations
+    -- if #(items>0) >0
+    --      #1 based on numer of avaliable items
+    --      #2 on total count of avaliable items
+    --      #3 on distance to constructron
+    -- else
+    --      #3 on distance to constructron
+    --      #4 on constructrons at the station to
+    log(serpent.block(self.stations))
+    local unit_count = custom_lib.table_length(self.stations)
+    log("#stations.." .. unit_count)
+    if unit_count > 0 then
+        local _, station = next(self.stations)
+        return station
     end
 end
 
@@ -189,6 +219,11 @@ function Surface_manager:unregister_entity(entity) -- luacheck: ignore
         self.chunks[key] = nil
     end
 end
+function Surface_manager:add_task(task)
+    self:log()
+    self:log("registered task: " .. serpent.block(task) .. "(" .. task.class_name .. ")")
+    self.tasks[#(self.tasks)] = task
+end
 
 function Surface_manager:assign_tasks(limit)
     self:log()
@@ -213,14 +248,12 @@ function Surface_manager:assign_tasks(limit)
         task:update()
         delivery:update()
         if task:get_items() then
-            self.tasks[#(self.tasks)] = task
-            self:log("registered task: " .. serpent.block(task))
+            self:add_task(task)
         else
             task:destroy()
         end
         if delivery:get_items() then
-            self.tasks[#(self.tasks)] = delivery
-            self:log("registered delivery: " .. serpent.block(delivery))
+            self:add_task(delivery)
         else
             delivery:destroy()
         end
@@ -244,13 +277,18 @@ function Surface_manager:run_jobs()
         log("job.status: " .. job:get_status())
         local state_based_action = self.job_actions[job:get_status()]
         local new_state = state_based_action:handleStateTransition(job)
-        log("job.new_state: " .. new_state)
+        log("job.new_status: " .. (new_state or "-"))
         if new_state then
             job:set_status(new_state)
         end
         game.print(job:get_status())
-        if job:get_status_id() == Job.status.job_completed then
-            job:destroy()
+        if job:get_status_id() == Job.status.completed then
+            job:destroy(
+                function(task)
+                    -- callback to re-register unfinished tasks with self
+                    self:add_task(task)
+                end
+            )
             self.jobs[key] = nil
         end
     end
@@ -258,7 +296,7 @@ end
 
 function Surface_manager:assign_jobs(limit)
     self:log()
-    if not next(self.constructrons)then
+    if not next(self.constructrons) then
         log("no constructrons on surface")
         return
     end
@@ -266,33 +304,33 @@ function Surface_manager:assign_jobs(limit)
         log("no stations on surface")
         return
     end
-
-    limit = limit or 10
     local c = 0
     local key, task = next(self.tasks)
-    local unit = self:get_free_constructron()
+    if task then
+        limit = limit or 10
+        local unit = self:get_free_constructron()
+        while task and unit and c < limit do
+            log("assign_job")
+            --  select 1st free constructron
+            unit:set_status(Ctron.status.idle)
+            local job = Job()
+            job:assign_constructron(unit)
 
-    while task and unit and c < limit do
-        log("assign_job")
-        --  select 1st free constructron
-        unit:set_status(Ctron.status.idle)
-        local job = Job()
-        job:assign_constructron(unit)
-        
-        --just simple 1:1  - fix later
-        job:add_task(task)
-        self.tasks[key] = nil
-        self.jobs[#(self.jobs) + 1] = job
-        --ToDo
-        --      get next task
-        --           if job already has tasks: sort by mean distance
-        --      assign task
-        --          split task if to large
-        --          insert task with remainder to front of task-queue if task was split
-        --      get next (until >80% full or next task fits in full or distance > 1.5 chunks)
-        key, task = next(self.tasks)
-        unit = self:get_free_constructron()
-        c = c + 1
+            --just simple 1:1  - fix later
+            job:add_task(task)
+            self.tasks[key] = nil
+            self.jobs[#(self.jobs) + 1] = job
+            --ToDo
+            --      get next task
+            --           if job already has tasks: sort by mean distance
+            --      assign task
+            --          split task if to large
+            --          insert task with remainder to front of task-queue if task was split
+            --      get next (until >80% full or next task fits in full or distance > 1.5 chunks)
+            key, task = next(self.tasks)
+            unit = self:get_free_constructron()
+            c = c + 1
+        end
     end
     return c
 end

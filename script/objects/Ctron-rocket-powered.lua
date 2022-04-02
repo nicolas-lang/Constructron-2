@@ -37,7 +37,7 @@ function Ctron_rocket_powered:new(entity)
 end
 
 function Ctron_rocket_powered:tick_update()
-    Ctron:tick_update()
+    Ctron.tick_update(self)
     if self:is_valid() then
         local transfer_efficiency = 0.5
         local grid = self.entity.grid

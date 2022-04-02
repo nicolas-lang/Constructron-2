@@ -84,7 +84,7 @@ table.insert(
             line_length = 8,
             animation_speed = 0.5,
             scale = 1.25 / 2,
-            shift = util.by_pixel(-1, 110),
+            shift = util.by_pixel(-1, 80),
             direction_count = 1
         }
     }
