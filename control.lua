@@ -19,6 +19,7 @@ local EntityClass = {
     ["ctron-steam-powered"] = require("__Constructron-2__.script.objects.Ctron-steam-powered"),
     ["ctron-solar-powered"] = require("__Constructron-2__.script.objects.Ctron-solar-powered"),
     ["ctron-nuclear-powered"] = require("__Constructron-2__.script.objects.Ctron-nuclear-powered"),
+    ["ctron-rocket-powered"] = require("__Constructron-2__.script.objects.Ctron-rocket-powered"),
     ["service-station"] = require("__Constructron-2__.script.objects.Station")
 }
 
@@ -292,7 +293,9 @@ script.on_event(
         {filter = "name", name = "ctron-classic", invert = true, mode = "or"},
         {filter = "name", name = "ctron-steam-powered", invert = true, mode = "or"},
         {filter = "name", name = "ctron-solar-powered", invert = true, mode = "or"},
-        {filter = "name", name = "ctron-nuclear-powered", invert = true, mode = "or"}
+        {filter = "name", name = "ctron-nuclear-powered", invert = true, mode = "or"},
+        {filter = "name", name = "ctron-rocket-powered", invert = true, mode = "or"}
+
     }
 )
 script.on_event({ev.on_entity_destroyed, ev.script_raised_destroy}, on_entity_destroyed)

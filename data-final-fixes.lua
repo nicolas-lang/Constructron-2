@@ -37,3 +37,8 @@ for _, leg in pairs(data.raw["spider-leg"]) do
         end
     end
 end
+
+local rocket_leg = data.raw["spider-leg"]["ctron-rocket-powered-leg-1"]
+if rocket_leg then
+    rocket_leg.collision_mask = {}
+end

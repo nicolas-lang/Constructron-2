@@ -45,6 +45,16 @@ if true then
     data:extend(ctron_nuclear_powered_robots)
 end
 
+-- Rocket powered Ctron
+local ctron_rocket_powered = require("__Constructron-2__.data.ctron-rocket-powered.ctron")
+local ctron_rocket_powered_equipment = require("__Constructron-2__.data.ctron-rocket-powered.equipment")
+local ctron_rocket_powered_robots = require("__Constructron-2__.data.ctron-rocket-powered.robots")
+if true then
+    data:extend(ctron_rocket_powered)
+    data:extend(ctron_rocket_powered_equipment)
+    data:extend(ctron_rocket_powered_robots)
+end
+
 -- Ctron Buffer chest
 local ctron_buffer_chest = require("__Constructron-2__.data.ctron-buffer-chest.buffer-chest")
 if true then

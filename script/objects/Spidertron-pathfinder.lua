@@ -194,8 +194,7 @@ function Spidertron_Pathfinder:on_script_path_request_finished(event)
                 request.request_tick = game.tick
                 self:request_path2(request)
             else
-                -- 7. f*ck it... just try to walk there in a straight line
-                request.unit:set_autopilot({{position = {x = request.initial_target.x, y = request.initial_target.y}}})
+                request.unit:set_status("pathfinding_failed")
             end
         else
             if self.clean_linear_path_enabled then

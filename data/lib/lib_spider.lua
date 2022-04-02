@@ -210,6 +210,11 @@ function lib_spider.create_spidertron(arguments)
 end
 
 function lib_spider.make_spidertron_leg(spidertron_name, scale, leg_thickness, movement_speed, number, base_sprite, ending_sprite)
+    if scale == 0 then
+        part_length = 1
+    else 
+        part_length = 3.5 * scale
+    end
     return
     {
       type = "spider-leg",
@@ -229,7 +234,7 @@ function lib_spider.make_spidertron_leg(spidertron_name, scale, leg_thickness, m
         sound = sounds.spidertron_leg,
         audible_distance_modifier = 0.5
       },
-      part_length = 3.5 * scale,
+      part_length = part_length ,
       initial_movement_speed = 0.06 * movement_speed,
       movement_acceleration = 0.03 * movement_speed,
       max_health = 100,
