@@ -1,7 +1,8 @@
 -- class Type Debug, nil members exist just to describe fields
 local Debug = {
     class_name = "Debug",
-    debug = true
+    debug = true,
+    logfileName = "constructron.log"
 }
 Debug.__index = Debug
 
@@ -29,7 +30,14 @@ function Debug:log(o)
             msg = " " .. serpent.block(o)
         end
         local func = debug.getinfo(2, "n").name
-        log(self.class_name .. ":" .. func .. msg)
+        --[[
+        local file = debug.getinfo(2, "S").source
+        local line = debug.getinfo(2, "S").linedefined
+        local logMessage = self.class_name .. ":" .. func .. msg
+        log(logMessage)
+        logMessage = file .. " (" .. line .. ") " .. logMessage
+        game.write_file(self.logfileName, logMessage .. "\r\n", true)
+        ]]
     end
 end
 
