@@ -106,6 +106,7 @@ for k, v in pairs(
             {
                 name = "ctron_nuclear_powered_leg-" .. k,
                 movement_bonus = v,
+                energy_consumption = v>0 and (k  .. "kW") or "0.1W",
                 categories = {
                     "ctron-nuclear-powered-equipment",
                     "constructron-managed"

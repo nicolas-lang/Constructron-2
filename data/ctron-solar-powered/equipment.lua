@@ -100,7 +100,7 @@ for k, v in pairs(
             {
                 name = "ctron_solar_powered_leg-" .. k,
                 movement_bonus = v,
-                energy_consumption = (k * 3) .. "kW",
+                energy_consumption = v>0 and ((k * 3) .. "kW") or "0.1W",
                 categories = {
                     "ctron-solar-powered-equipment",
                     "constructron-managed"
