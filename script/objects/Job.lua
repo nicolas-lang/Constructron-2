@@ -84,7 +84,7 @@ function Job:set_status(status)
     end
     self.current_status = parsed_status
     if self.constructron then
-        self:attach_text(self.constructron.entity, text_status, -2, 1.2)
+        self:attach_text(self.constructron.entity, text_status, self.debug.def.line_1, 2)
     end
 end
 
