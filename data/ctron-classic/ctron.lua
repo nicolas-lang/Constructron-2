@@ -62,7 +62,7 @@ local constructron_recipe = {
     energy = 1
 }
 
-local ctron_classic = {constructron, constructron_grid, constructron_item, constructron_recipe}
+local ctron_classic = {constructron, constructron_classic_category, constructron_grid, constructron_item, constructron_recipe}
 
 for _, leg in pairs(leg_entities) do
     table.insert(ctron_classic, leg)
