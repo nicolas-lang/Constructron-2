@@ -27,7 +27,7 @@ table.insert(ctron_steam_powered, constructron_grid)
 local spidertron_definition = {
     name = "ctron-steam-powered",
     grid = "constructron-steam-equipment-grid",
-    inventory_size = 10,
+    inventory_size = 12,
     trash_inventory_size = 10,
     guns = {},
     scale = 0.5,

@@ -222,7 +222,7 @@ end
 
 function Ctron:setup_gear()
     self:log()
-    self:attach_text(self.entity, "update_gear" , -1, 1)
+    self:attach_text(self.entity, "update_gear", -1, 1)
     if self:is_valid() and #(self.gear) > 0 then
         -- remove incorrect gear
         local equipment_grid = self.entity.grid
@@ -289,7 +289,7 @@ end
 
 function Ctron:assign_job(job_id)
     self:log()
-    self:attach_text(self.entity, "set_job" , -1, 1)
+    self:attach_text(self.entity, "set_job", -1, 1)
     self.job_id = job_id
 end
 
@@ -303,12 +303,12 @@ function Ctron:set_status(status)
                 if value == status then
                     parsed_status = status
                     self:log(key)
-                    self:attach_text(self.entity, key , 0, 1.5)
+                    self:attach_text(self.entity, key, 0, 1.5)
                 end
             end
         else
             self:log(status)
-            self:attach_text(self.entity, status , 0, 1.5)
+            self:attach_text(self.entity, status, 0, 1.5)
             parsed_status = Ctron.status[status]
         end
         if not parsed_status then
@@ -434,7 +434,7 @@ end
 
 function Ctron:set_request_items(request_items, item_whitelist)
     self:log()
-    self:attach_text(self.entity, "set_request_items" , -1, 1)
+    self:attach_text(self.entity, "set_request_items", -1, 1)
     if self:is_valid() then
         local updated = false
         request_items = request_items or {}
@@ -510,14 +510,14 @@ function Ctron:is_moving()
 end
 
 function Ctron:distance_to(position)
-    self:log()
+    self:log(serpent.block(position))
     if self:is_valid() and position then
         return math.sqrt((self.entity.position.x - position.x) ^ 2 + (self.entity.position.y - position.y) ^ 2)
     end
 end
 
 function Ctron:go_to(target)
-    self:log()
+    self:log(serpent.block(target))
     if self:is_valid() and target then
         if (self:distance_to(target) < 12) then
             self:set_autopilot(
@@ -543,19 +543,19 @@ end
 
 function Ctron:get_construction_enabled()
     self:log()
-    return self.construction_enabled
+    return self.construction_enabled == true
 end
 
 function Ctron:enable_construction()
     self:log()
-    self:attach_text(self.entity, "enable_construction" , -1, 1)
+    self:attach_text(self.entity, "enable_construction", -1, 1)
     self.construction_enabled = true
     self.entity.enable_logistics_while_moving = true
 end
 
 function Ctron:disable_construction()
     self:log()
-    self:attach_text(self.entity, "disable_construction" , -1, 1)
+    self:attach_text(self.entity, "disable_construction", -1, 1)
     self.construction_enabled = false
     self.entity.enable_logistics_while_moving = false
 end
@@ -583,7 +583,7 @@ end
 
 function Ctron:set_autopilot(path)
     self:log()
-    self:attach_text(self.entity, "set_autopilot" , -1, 1)
+    self:attach_text(self.entity, "set_autopilot", -1, 1)
     if self:is_valid() then
         --log("set_autopilot")
         self.entity.autopilot_destination = nil

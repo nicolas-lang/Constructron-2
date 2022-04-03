@@ -36,29 +36,36 @@ function Action_do_task:handleStateTransition(job)
     -- Job Status is DoTask
     if job.constructron:get_status_id() == Ctron.status.pathfinding_failed then
         local task = job:get_current_task()
-        task:next_position()
+        task:next_position(true)
         job.constructron:set_status(Ctron.status.idle)
     elseif job.constructron:get_status_id() == Ctron.status.idle then
+        self:log("Ctron.status.idle")
         local task = job:get_current_task()
         local next_position = task:get_next_position()
         if next_position then
+            self:log("next_position")
             if job.constructron:distance_to(next_position) < 4 then
+                self:log("nearby")
                 -- at Task.NextPosition()
                 if job.constructron:get_construction_enabled() then
+                    self:log("cst:enabled")
                     --  Robots Enabled
                     --> Mark Position completed
                     --> Disable robots
                     task:next_position(true)
                     job.constructron:disable_construction()
                 else
+                    self:log("cst:disabled")
                     --  Robots Disabled
                     --> Enable robots
                     job.constructron:enable_construction()
                 end
             else
+                self:log("distance>4")
                 job.constructron:go_to(next_position)
             end
         else
+            self:log("next_position:nil")
             -- Task.NextPosition() == nil --> Task.set_completed()
             task:mark_completed()
             return job.status.validate

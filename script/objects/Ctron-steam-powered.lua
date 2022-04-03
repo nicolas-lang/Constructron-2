@@ -60,42 +60,41 @@ function Ctron_steam_powered:tick_update()
 end
 
 function Ctron_steam_powered:set_request_items(request_items, item_whitelist)
+    self:update_slot_filters()
     request_items = request_items or {}
     request_items[self.fuel] = (request_items[self.fuel] or 0) + control_lib.get_stack_size(self.fuel) * #(self.entity.burner.inventory)
-    request_items["construction-robot"] = (request_items["construction-robot"] or 0) + self.robots
+    --request_items["construction-robot"] = (request_items["construction-robot"] or 0) + self.robots
     Ctron.set_request_items(self, request_items, item_whitelist)
 end
 
---[[
-function Ctron_steam_powered:enable_constrcution()
+function Ctron_steam_powered:update_slot_filters()
+    self:log()
+    inventory = self.entity.get_inventory(defines.inventory.spider_trunk)
+    local filters = {
+        ["ctron-steam-powered-robot"] = #inventory ,
+        ["repair-pack"] = #inventory - 1
+    }
+    for item, slot in pairs(filters) do
+        if not inventory.set_filter(slot, item) then
+            inventory[slot].clear()
+            inventory.set_filter(slot, item)
+        end
+    end
+end
+
+function Ctron_steam_powered:enable_construction()
+    self:log()
+    self:update_slot_filters()
     Ctron.enable_construction(self)
-end
-function Ctron_steam_powered:disable_constrcution()
-    Ctron.enable_constrcution(self)
-end
-
-
-function Companion:set_robot_stack()
-  local inventory = self:get_inventory()
-  if not inventory.set_filter(21,"companion-construction-robot") then
-    inventory[21].clear()
-    inventory.set_filter(21,"companion-construction-robot")
-  end
-
-  if self.can_construct then
-    inventory[21].set_stack({name = "companion-construction-robot", count = 100})
-  else
-    inventory[21].clear()
-  end
+    inventory = self.entity.get_inventory(defines.inventory.spider_trunk)
+    inventory[#inventory].set_stack({name = "ctron-steam-powered-robot", count = 100})
 end
 
-function Companion:clear_robot_stack()
-  local inventory = self:get_inventory()
-  if not inventory.set_filter(21,"companion-construction-robot") then
-    inventory[21].clear()
-    inventory.set_filter(21,"companion-construction-robot")
-  end
-  inventory[21].clear()
+function Ctron_steam_powered:disable_construction()
+    self:log()
+    self:update_slot_filters()
+    Ctron.disable_construction(self)
+    inventory[#inventory - 1].clear()
 end
-]]
+
 return Ctron_steam_powered

@@ -54,9 +54,12 @@ end
 
 function Task:get_next_position()
     if self.current_position == 1 then
-        self.current_position = self.current_position + 1
         return self:get_position()
     end
+end
+
+function Task:next_position()
+    self.current_position = self.current_position + 1
 end
 
 function Task:get_position()
@@ -65,13 +68,17 @@ function Task:get_position()
     if next(self.entities) then
         local c = 0
         for _, entity in pairs(self.entities) do
-            position.x = entity.position.x
-            position.y = entity.position.y
-            c = c + 1
+            if entity and entity.valid then
+                position.x = entity.position.x
+                position.y = entity.position.y
+                c = c + 1
+            end
         end
-        position.x = math.floor(position.x / c * 1000 + 0.5) / 1000
-        position.y = math.floor(position.y / c * 1000 + 0.5) / 1000
-        return position
+        if c > 0 then
+            position.x = math.floor(position.x / c * 1000 + 0.5) / 1000
+            position.y = math.floor(position.y / c * 1000 + 0.5) / 1000
+            return position
+        end
     end
 end
 
