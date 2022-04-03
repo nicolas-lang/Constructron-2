@@ -1,3 +1,9 @@
+-- equipment category
+local constructron_classic_category = {
+    name = "constructron-classic",
+    type = "equipment-category"
+}
+
 local constructron_grid = {
     name = "ctron-classic-equipment-grid",
     type = "equipment-grid",
