@@ -3,7 +3,7 @@ local constructron_grid = {
     type = "equipment-grid",
     height = 6,
     width = 10,
-    equipment_categories = {"constructron-unmanaged"}
+    equipment_categories = {"constructron-unmanaged", "constructron-classic"}
 }
 
 local lib_spider = require("__Constructron-2__.data.lib.lib_spider")
