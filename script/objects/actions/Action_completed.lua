@@ -1,6 +1,6 @@
-local custom_lib = require("__Constructron-2__.data.lib.custom_lib")
+--local custom_lib = require("__Constructron-2__.data.lib.custom_lib")
 local Action = require("__Constructron-2__.script.objects.actions.Action")
-local Ctron = require("__Constructron-2__.script.objects.Ctron")
+--local Ctron = require("__Constructron-2__.script.objects.Ctron")
 
 -- class Type Action_completed, nil members exist just to describe fields
 local Action_completed = {
@@ -26,10 +26,11 @@ function Action_completed:new(surfacemanager)
 end
 
 -- Class Methods
-function Action_completed:handleStateTransition(job)
+function Action_completed:handleStateTransition(_)
     self:log()
     -- final state
     --> job needs to be destroyed by parent
+    --> no action
 end
 
 return Action_completed
