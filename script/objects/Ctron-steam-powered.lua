@@ -62,6 +62,8 @@ end
 function Ctron_steam_powered:set_request_items(request_items, item_whitelist)
     self:update_slot_filters()
     request_items = request_items or {}
+    item_whitelist = item_whitelist or {}
+    item_whitelist["ctron-steam-powered-robot"] = true
     request_items[self.fuel] = (request_items[self.fuel] or 0) + control_lib.get_stack_size(self.fuel) * #(self.entity.burner.inventory)
     --request_items["construction-robot"] = (request_items["construction-robot"] or 0) + self.robots
     Ctron.set_request_items(self, request_items, item_whitelist)
@@ -87,7 +89,7 @@ function Ctron_steam_powered:enable_construction()
     self:update_slot_filters()
     Ctron.enable_construction(self)
     inventory = self.entity.get_inventory(defines.inventory.spider_trunk)
-    inventory[#inventory].set_stack({name = "ctron-steam-powered-robot", count = 100})
+    inventory[#inventory].set_stack({name = "ctron-steam-powered-robot", count = 5})
 end
 
 function Ctron_steam_powered:disable_construction()
