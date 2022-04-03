@@ -11,7 +11,7 @@ local Debug = {
             line_2 = -1,
             --line_3 = 0,
             dynamic = 0
-        },
+        }
     }
 }
 Debug.__index = Debug
@@ -57,37 +57,28 @@ function Debug:attach_text(entity, message, line, ttl)
                 self.debug_messages[k] = nil
             end
         end
+        if entity and entity.valid then
+            line = line or 0
+            ttl = (ttl or 1) * 60
+            local color = {r = 255, g = 255, b = 255, a = 255}
+            if line == self.debug.def.dynamic then
+                local index = custom_lib.table_length(self.debug_messages) + 1
+                self.debug_messages[index] = {tick = game.tick, ttl = ttl}
+                line = line + index - 1
+                color = {r = 150, g = 150, b = 150, a = 255}
+            end
 
-        if not entity or not entity.valid then
-            return
+            rendering.draw_text {
+                text = message,
+                target = entity,
+                filled = true,
+                surface = entity.surface,
+                time_to_live = ttl,
+                target_offset = util.by_pixel(0, line * 16),
+                alignment = "center",
+                color = color
+            }
         end
-        if not line then
-            line = 0
-        end
-
-        if not ttl then
-            ttl = 60
-        else 
-            ttl = ttl * 60
-        end
-        local color = {r = 255, g = 255, b = 255, a = 255}
-        if line == self.debug.def.dynamic then
-            local index = custom_lib.table_length(self.debug_messages) +1
-            self.debug_messages[index] = {tick = game.tick, ttl = ttl}
-            line = line + index -1
-            color = {r = 175, g = 175, b = 175, a = 255}
-        end
-
-        rendering.draw_text {
-            text = message,
-            target = entity,
-            filled = true,
-            surface = entity.surface,
-            time_to_live = ttl,
-            target_offset = util.by_pixel(0, line * 16),
-            alignment = "center",
-            color = color
-        }
     end
 end
 return Debug
