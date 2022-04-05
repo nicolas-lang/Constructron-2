@@ -3,7 +3,7 @@ local ctron_rocket_powered = {}
 
 local ctron_rocket_powered_robot =
     lib_robots.make_robot(
-    "construction",
+    "robot",
     {
         name = "ctron-rocket-powered-robot",
         max_payload_size = 1,
@@ -16,7 +16,8 @@ local ctron_rocket_powered_robot =
                 percent = 100
             }
         }
-    }
+    },
+    "__Constructron-2__/graphics/robots/construction-robot/"
 )
 table.insert(ctron_rocket_powered, ctron_rocket_powered_robot)
 
@@ -26,7 +27,8 @@ local ctron_rocket_powered_robot_item =
     {
         name = "ctron-rocket-powered-robot",
         place_result = "ctron-rocket-powered-robot"
-    }
+    },
+    "__Constructron-2__/graphics/robots/construction-robot/"
 )
 table.insert(ctron_rocket_powered, ctron_rocket_powered_robot_item)
 

@@ -90,7 +90,7 @@ table.insert(ctron_solar_powered, lightning_smoke)
 local spidertron_definition = {
     name = "ctron-solar-powered",
     grid = "constructron-solar-equipment-grid",
-    inventory_size = 40,
+    inventory_size = 42,
     trash_inventory_size = 20,
     movement_energy_consumption = "500KW",
     guns = {},

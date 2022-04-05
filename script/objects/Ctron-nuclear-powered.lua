@@ -12,7 +12,14 @@ local Ctron_nuclear_powered = {
     },
     managed_equipment_cols = 5,
     fuel = "uranium-fuel-cell",
-    robots = 120
+    construction_robots = {
+        type = "ctron-nuclear-powered-robot",
+        count = 120
+    },
+    inventory_filters = {
+        ["repair-pack"] = 1,
+        ["ctron-nuclear-powered-robot"] = 1
+    }
 }
 
 Ctron_nuclear_powered.__index = Ctron_nuclear_powered
@@ -34,6 +41,7 @@ function Ctron_nuclear_powered:new(entity)
     log("Ctron_nuclear_powered.new")
     Ctron.new(self, entity)
     self:setup_gear()
+    self:update_slot_filters()
 end
 
 function Ctron_nuclear_powered:tick_update()
@@ -61,8 +69,24 @@ end
 function Ctron_nuclear_powered:set_request_items(request_items, item_whitelist)
     request_items = request_items or {}
     request_items[self.fuel] = (request_items[self.fuel] or 0) + control_lib.get_stack_size(self.fuel) * #(self.entity.burner.inventory)
-    request_items["construction-robot"] = (request_items["construction-robot"] or 0) + self.robots
+    --request_items["construction-robot"] = (request_items["construction-robot"] or 0) + self.robots
     Ctron.set_request_items(self, request_items, item_whitelist)
+end
+
+function Ctron_nuclear_powered:enable_construction()
+    self:log()
+    self:update_slot_filters()
+    Ctron.enable_construction(self)
+    inventory = self.entity.get_inventory(defines.inventory.spider_trunk)
+    inventory.insert({name = self.construction_robots.type , count = self.construction_robots.count})
+end
+
+function Ctron_nuclear_powered:disable_construction()
+    self:log()
+    self:update_slot_filters()
+    Ctron.disable_construction(self)
+    inventory = self.entity.get_inventory(defines.inventory.spider_trunk)
+    inventory.remove({name = self.construction_robots.type , count = 999})
 end
 
 return Ctron_nuclear_powered

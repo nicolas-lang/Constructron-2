@@ -3,7 +3,7 @@ local ctron_steam_powered = {}
 
 local ctron_steam_powered_robot =
     lib_robots.make_robot(
-    "construction",
+    "robot",
     {
         name = "ctron-steam-powered-robot",
         max_payload_size = 1,
@@ -16,7 +16,8 @@ local ctron_steam_powered_robot =
                 percent = 100
             }
         }
-    }
+    },
+    "__Constructron-2__/graphics/robots/defender-robot/"
 )
 table.insert(ctron_steam_powered, ctron_steam_powered_robot)
 
@@ -26,7 +27,8 @@ local ctron_steam_powered_robot_item =
     {
         name = "ctron-steam-powered-robot",
         place_result = "ctron-steam-powered-robot"
-    }
+    },
+    "__Constructron-2__/graphics/robots/defender-robot/"
 )
 table.insert(ctron_steam_powered, ctron_steam_powered_robot_item)
 

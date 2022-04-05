@@ -43,14 +43,15 @@ function Action_get_service:handleStateTransition(job)
     end
     log(job.constructron:get_status_name())
     if job.constructron:get_status_id() == Ctron.status.idle then
+        local required_items = job:get_items()
+        log("required_items: " .. serpent.block(required_items))
+        local updated = job.constructron:set_request_items(required_items)
+        if updated then
+            return
+        end
+
         local station_position = job.station:get_position()
         if job.constructron:distance_to(station_position.position) < 5 then
-            local required_items = job:get_items()
-            log("required_items: " .. serpent.block(required_items))
-            local updated = job.constructron:set_request_items(required_items)
-            if updated then
-                return
-            end
             -- near station
             if not job:get_current_task() then
                 self:log("job has no task to do")

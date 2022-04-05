@@ -17,7 +17,8 @@ local Ctron = {
     managed_equipment = {},
     managed_equipment_cols = 0,
     last_status_update_tick = 0,
-    movement_research = 1
+    movement_research = 1,
+    inventory_filters = {}
 }
 Ctron.__index = Ctron
 
@@ -61,6 +62,7 @@ end
 Ctron.status = {
     requesting = 4,
     robots_active = 3,
+    robots_charging=10,
     idle = 1,
     traveling = 2,
     error = 6,
@@ -191,10 +193,19 @@ function Ctron:status_update()
             return self:set_status(Ctron.status.traveling)
         end
 
-        if self:is_moving() == false and self.construction_enabled and self:robots_inactive() == false then
-            return self:set_status(Ctron.status.constructing)
-        end
+        if self:is_moving() == false and self.construction_enabled then
+            if self:robots_inactive() == false then
+                return self:set_status(Ctron.status.robots_active)
+            end
 
+            for i, equipment in pairs(self.entity.grid.equipment) do -- does not account for only 1 item in grid
+                if equipment.type == "roboport-equipment" then
+                    if (equipment.energy / equipment.max_energy) < 0.99 then
+                        return self:set_status(Ctron.status.robots_charging)
+                    end
+                end
+            end
+        end
         if self:in_logistic_network() then
             local active_logistic_requests = self:get_logistic_status() or {}
             if custom_lib.table_length(active_logistic_requests) > 0 then
@@ -222,7 +233,7 @@ end
 
 function Ctron:setup_gear()
     self:log()
-    self:attach_text(self.entity, "update_gear", self.debug.def.dynamic, 2)
+    self:attach_text(self.entity, "update_gear", self.debug_definition.lines.dynamic, 2)
     if self:is_valid() and #(self.gear) > 0 then
         -- remove incorrect gear
         local equipment_grid = self.entity.grid
@@ -271,6 +282,7 @@ function Ctron:setup_gear()
                 }
             end
         end
+        -- if not moving and auto pilot nil and target then go to target
     end
 end
 
@@ -289,7 +301,7 @@ end
 
 function Ctron:assign_job(job_id)
     self:log()
-    self:attach_text(self.entity, "set_job", self.debug.def.dynamic, 2)
+    self:attach_text(self.entity, "set_job", self.debug_definition.lines.dynamic, 2)
     self.job_id = job_id
 end
 
@@ -303,12 +315,12 @@ function Ctron:set_status(status)
                 if value == status then
                     parsed_status = status
                     self:log(key)
-                    self:attach_text(self.entity, key, self.debug.def.line_2, 2)
+                    self:attach_text(self.entity, key, self.debug_definition.lines.line_2, 2)
                 end
             end
         else
             self:log(status)
-            self:attach_text(self.entity, status, self.debug.def.line_2, 2)
+            self:attach_text(self.entity, status, self.debug_definition.lines.line_2, 2)
             parsed_status = Ctron.status[status]
         end
         if not parsed_status then
@@ -434,7 +446,7 @@ end
 
 function Ctron:set_request_items(request_items, item_whitelist)
     self:log()
-    self:attach_text(self.entity, "set_request_items", self.debug.def.dynamic, 2)
+    self:attach_text(self.entity, "set_request_items", self.debug_definition.lines.dynamic, 2)
     if self:is_valid() then
         local updated = false
         request_items = request_items or {}
@@ -548,14 +560,14 @@ end
 
 function Ctron:enable_construction()
     self:log()
-    self:attach_text(self.entity, "enable_construction", self.debug.def.dynamic, 2)
+    self:attach_text(self.entity, "enable_construction", self.debug_definition.lines.dynamic, 2)
     self.construction_enabled = true
     self.entity.enable_logistics_while_moving = true
 end
 
 function Ctron:disable_construction()
     self:log()
-    self:attach_text(self.entity, "disable_construction", self.debug.def.dynamic, 2)
+    self:attach_text(self.entity, "disable_construction", self.debug_definition.lines.dynamic, 2)
     self.construction_enabled = false
     self.entity.enable_logistics_while_moving = false
 end
@@ -583,7 +595,7 @@ end
 
 function Ctron:set_autopilot(path)
     self:log()
-    self:attach_text(self.entity, "set_autopilot", self.debug.def.dynamic, 2)
+    self:attach_text(self.entity, "set_autopilot", self.debug_definition.lines.dynamic, 2)
     if self:is_valid() then
         --log("set_autopilot")
         self.entity.autopilot_destination = nil
@@ -595,5 +607,25 @@ function Ctron:set_autopilot(path)
         self:set_status(self.status.traveling)
     end
 end
+
+function Ctron:update_slot_filters()
+    self:log()
+    local offset = 0
+    local inventory = self.entity.get_inventory(defines.inventory.spider_trunk)
+    log(serpent.block(self.inventory_filters))
+    for item, slot_count in pairs(self.inventory_filters) do
+        self:log(item .. ": "..slot_count)
+        for i = 1, slot_count do
+            local slot = (#inventory) - offset
+            self:log(item .. ": "..slot)
+            if not inventory.set_filter(slot, item) then
+                inventory[slot].clear()
+                inventory.set_filter(slot, item)
+            end
+            offset = offset + 1
+        end
+    end
+end
+
 
 return Ctron

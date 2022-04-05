@@ -2,9 +2,8 @@ local util = require("util")
 local cust_lib = require("__Constructron-2__.data.lib.custom_lib")
 local hit_effects = require("__base__.prototypes.entity.hit-effects")
 local sounds = require("__base__.prototypes.entity.sounds")
-local robot_animations = {}
 
-robot_animations.sparks = {
+local spark_animations = {
     {
         filename = "__base__/graphics/entity/sparks/sparks-01.png",
         draw_as_glow = true,
@@ -73,18 +72,11 @@ robot_animations.sparks = {
     }
 }
 
-robot_animations.construction_robot = {
-    idle = {
-        filename = "__base__/graphics/entity/construction-robot/construction-robot.png",
-        priority = "high",
-        line_length = 16,
-        width = 32,
-        height = 36,
-        frame_count = 1,
-        shift = util.by_pixel(0, -4.5),
-        direction_count = 16,
-        hr_version = {
-            filename = "__base__/graphics/entity/construction-robot/hr-construction-robot.png",
+local function make_robot_animation(animation_type, image_base)
+    image_base = image_base or "__Constructron-2__/graphics/robots/construction-robot/robot-icon.png"
+    local animations = {
+        idle = {
+            filename = image_base .. "/robot.png",
             priority = "high",
             line_length = 16,
             width = 66,
@@ -93,134 +85,46 @@ robot_animations.construction_robot = {
             shift = util.by_pixel(0, -4.5),
             direction_count = 16,
             scale = 0.5
-        }
-    },
-    in_motion = {
-        filename = "__base__/graphics/entity/construction-robot/construction-robot.png",
-        priority = "high",
-        line_length = 16,
-        width = 32,
-        height = 36,
-        frame_count = 1,
-        shift = util.by_pixel(0, -4.5),
-        direction_count = 16,
-        y = 36,
-        hr_version = {
-            filename = "__base__/graphics/entity/construction-robot/hr-construction-robot.png",
-            priority = "high",
-            line_length = 16,
-            width = 66,
-            height = 76,
-            frame_count = 1,
-            shift = util.by_pixel(0, -4.5),
-            direction_count = 16,
-            y = 76,
-            scale = 0.5
-        }
-    },
-    shadow_idle = {
-        filename = "__base__/graphics/entity/construction-robot/construction-robot-shadow.png",
-        priority = "high",
-        line_length = 16,
-        width = 53,
-        height = 25,
-        frame_count = 1,
-        shift = util.by_pixel(33.5, 18.5),
-        direction_count = 16,
-        draw_as_shadow = true,
-        hr_version = {
-            filename = "__base__/graphics/entity/construction-robot/hr-construction-robot-shadow.png",
-            priority = "high",
-            line_length = 16,
-            width = 104,
-            height = 49,
-            frame_count = 1,
-            shift = util.by_pixel(33.5, 18.75),
-            direction_count = 16,
-            scale = 0.5,
-            draw_as_shadow = true
-        }
-    },
-    shadow_in_motion = {
-        filename = "__base__/graphics/entity/construction-robot/construction-robot-shadow.png",
-        priority = "high",
-        line_length = 16,
-        width = 53,
-        height = 25,
-        frame_count = 1,
-        shift = util.by_pixel(33.5, 18.5),
-        direction_count = 16,
-        draw_as_shadow = true,
-        hr_version = {
-            filename = "__base__/graphics/entity/construction-robot/hr-construction-robot-shadow.png",
-            priority = "high",
-            line_length = 16,
-            width = 104,
-            height = 49,
-            frame_count = 1,
-            shift = util.by_pixel(33.5, 18.75),
-            direction_count = 16,
-            scale = 0.5,
-            draw_as_shadow = true
-        }
-    },
-    working = {
-        filename = "__base__/graphics/entity/construction-robot/construction-robot-working.png",
-        priority = "high",
-        line_length = 2,
-        width = 28,
-        height = 36,
-        frame_count = 2,
-        shift = util.by_pixel(-0.25, -5),
-        direction_count = 16,
-        animation_speed = 0.3,
-        hr_version = {
-            filename = "__base__/graphics/entity/construction-robot/hr-construction-robot-working.png",
+        },
+        working = {
+            filename = image_base .. "/robot-working.png",
             priority = "high",
             line_length = 2,
-            width = 57,
-            height = 74,
+            width = 66,
+            height = 76,
             frame_count = 2,
             shift = util.by_pixel(-0.25, -5),
             direction_count = 16,
             animation_speed = 0.3,
             scale = 0.5
-        }
-    },
-    shadow_working = {
-        filename = "__base__/graphics/entity/construction-robot/construction-robot-shadow.png",
-        priority = "high",
-        line_length = 16,
-        width = 53,
-        height = 25,
-        frame_count = 1,
-        repeat_count = 2,
-        shift = util.by_pixel(33.5, 18.5),
-        direction_count = 16,
-        draw_as_shadow = true,
-        hr_version = {
-            filename = "__base__/graphics/entity/construction-robot/hr-construction-robot-shadow.png",
+        },
+        shadow = {
+            filename = image_base .. "/robot-shadow.png",
             priority = "high",
             line_length = 16,
             width = 104,
             height = 49,
             frame_count = 1,
-            repeat_count = 2,
-            shift = util.by_pixel(33.5, 18.75),
+            shift = util.by_pixel(0, -4.5),
             direction_count = 16,
-            scale = 0.5,
-            draw_as_shadow = true
+            scale = 0.5
         }
     }
-}
+
+    animations.in_motion = table.deepcopy(animations.idle)
+    animations.in_motion.y = 76
+    animations.working_shadow = table.deepcopy(animations.shadow)
+    animations.working_shadow.repeat_count = 2
+    return animations[animation_type]
+end
 
 local lib_robots = {}
 lib_robots.templates = {
-    construction = {
+    robot = {
         type = "construction-robot",
         name = nil,
-        icon = "__base__/graphics/icons/construction-robot.png",
-        icon_size = 64,
+        icon = "__Constructron-2__/graphics/robots/construction-robot/robot-icon.png",
+        icon_size = 128,
         icon_mipmaps = 4,
         flags = {"placeable-off-grid", "not-on-map"},
         --minable = {mining_time = 0.1, result = "construction-robot"},
@@ -250,7 +154,7 @@ lib_robots.templates = {
             shift = {0.078125, -0.15625},
             animation_speed = 0.3
         },
-        sparks = robot_animations.sparks,
+        sparks = spark_animations,
         repairing_sound = {
             {filename = "__base__/sound/robot-repair-1.ogg", volume = 0.6},
             {filename = "__base__/sound/robot-repair-2.ogg", volume = 0.6},
@@ -262,34 +166,39 @@ lib_robots.templates = {
         working_sound = sounds.construction_robot(0.47),
         cargo_centered = {0.0, 0.2},
         construction_vector = {0.30, 0.22},
-        water_reflection = robot_reflection(1), -- luacheck: ignore
-        idle = robot_animations.construction_robot.idle,
-        idle_with_cargo = robot_animations.construction_robot.idle_with_cargo,
-        in_motion = robot_animations.construction_robot.in_motion,
-        in_motion_with_cargo = robot_animations.construction_robot.in_motion_with_cargo,
-        shadow_idle = robot_animations.construction_robot.shadow_idle,
-        shadow_idle_with_cargo = robot_animations.construction_robot.shadow_idle_with_cargo,
-        shadow_in_motion = robot_animations.construction_robot.shadow_in_motion,
-        shadow_in_motion_with_cargo = robot_animations.construction_robot.shadow_in_motion_with_cargo,
-        working = robot_animations.construction_robot.working,
-        shadow_working = robot_animations.construction_robot.shadow_working
+        water_reflection = robot_reflection(1) -- luacheck: ignore
     },
     item = {
         type = "item",
         name = nil,
         place_result = nil,
         flags = {"hidden"},
-        icon = "__base__/graphics/icons/construction-robot.png",
-        icon_size = 64,
+        icon = "__Constructron-2__/graphics/robots/construction-robot/robot-icon.png",
+        icon_size = 128,
         order = "z",
         stack_size = 500
     }
 }
 
-function lib_robots.make_robot(template, params)
+function lib_robots.make_robot(template, params, image_base)
     if lib_robots.templates[template] then
         local prototype = table.deepcopy(lib_robots.templates[template])
         cust_lib.merge(prototype, params)
+        prototype.icon = image_base .. "/robot-icon.png"
+        if template == "robot" then
+            prototype.idle = make_robot_animation("idle", image_base)
+            prototype.idle_with_cargo = make_robot_animation("idle", image_base)
+            prototype.in_motion = make_robot_animation("in_motion", image_base)
+            prototype.in_motion_with_cargo = make_robot_animation("in_motion", image_base)
+
+            prototype.shadow_idle = make_robot_animation("shadow", image_base)
+            prototype.shadow_idle_with_cargo = make_robot_animation("shadow", image_base)
+            prototype.shadow_in_motion = make_robot_animation("shadow", image_base)
+            prototype.shadow_in_motion_with_cargo = make_robot_animation("shadow", image_base)
+            
+            prototype.working = make_robot_animation("working", image_base)
+            prototype.shadow_working = make_robot_animation("working_shadow", image_base)
+        end
         return prototype
     end
 end

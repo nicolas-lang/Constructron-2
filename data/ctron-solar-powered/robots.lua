@@ -3,7 +3,7 @@ local ctron_solar_powered = {}
 
 local ctron_solar_powered_robot =
     lib_robots.make_robot(
-    "construction",
+    "robot",
     {
         name = "ctron-solar-powered-robot",
         max_payload_size = 2,
@@ -15,7 +15,8 @@ local ctron_solar_powered_robot =
                 percent = 100
             }
         }
-    }
+    },
+    "__Constructron-2__/graphics/robots/distractor-robot/"
 )
 table.insert(ctron_solar_powered, ctron_solar_powered_robot)
 
@@ -25,7 +26,8 @@ local ctron_solar_powered_robot_item =
     {
         name = "ctron-solar-powered-robot",
         place_result = "ctron-solar-powered-robot"
-    }
+    },
+    "__Constructron-2__/graphics/robots/distractor-robot/"
 )
 table.insert(ctron_solar_powered, ctron_solar_powered_robot_item)
 

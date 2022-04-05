@@ -12,7 +12,14 @@ local Ctron_steam_powered = {
     },
     managed_equipment_cols = 4,
     fuel = "coal",
-    robots = 5
+    construction_robots = {
+        type = "ctron-steam-powered-robot",
+        count = 5
+    },
+    inventory_filters = {
+        ["repair-pack"] = 1,
+        ["ctron-steam-powered-robot"] = 1
+    }
 }
 
 Ctron_steam_powered.__index = Ctron_steam_powered
@@ -34,6 +41,7 @@ function Ctron_steam_powered:new(entity)
     log("Ctron_steam_powered.new")
     Ctron.new(self, entity)
     self:setup_gear()
+    self:update_slot_filters()
 end
 
 function Ctron_steam_powered:tick_update()
@@ -69,34 +77,20 @@ function Ctron_steam_powered:set_request_items(request_items, item_whitelist)
     Ctron.set_request_items(self, request_items, item_whitelist)
 end
 
-function Ctron_steam_powered:update_slot_filters()
-    self:log()
-    inventory = self.entity.get_inventory(defines.inventory.spider_trunk)
-    local filters = {
-        ["ctron-steam-powered-robot"] = #inventory ,
-        ["repair-pack"] = #inventory - 1
-    }
-    for item, slot in pairs(filters) do
-        if not inventory.set_filter(slot, item) then
-            inventory[slot].clear()
-            inventory.set_filter(slot, item)
-        end
-    end
-end
-
 function Ctron_steam_powered:enable_construction()
     self:log()
     self:update_slot_filters()
     Ctron.enable_construction(self)
     inventory = self.entity.get_inventory(defines.inventory.spider_trunk)
-    inventory[#inventory].set_stack({name = "ctron-steam-powered-robot", count = 5})
+    inventory.insert({name = self.construction_robots.type , count = self.construction_robots.count})
 end
 
 function Ctron_steam_powered:disable_construction()
     self:log()
     self:update_slot_filters()
     Ctron.disable_construction(self)
-    inventory[#inventory - 1].clear()
+    inventory = self.entity.get_inventory(defines.inventory.spider_trunk)
+    inventory.remove({name = self.construction_robots.type , count = 999})
 end
 
 return Ctron_steam_powered

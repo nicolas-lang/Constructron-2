@@ -5,8 +5,8 @@ local Debug = {
     class_name = "Debug",
     debug = true,
     logfileName = "constructron.log",
-    debug = {
-        def = {
+    debug_definition = {
+        lines = {
             line_1 = -2,
             line_2 = -1,
             --line_3 = 0,
@@ -61,7 +61,7 @@ function Debug:attach_text(entity, message, line, ttl)
             line = line or 0
             ttl = (ttl or 1) * 60
             local color = {r = 255, g = 255, b = 255, a = 255}
-            if line == self.debug.def.dynamic then
+            if line == self.debug_definition.lines.dynamic then
                 local index = custom_lib.table_length(self.debug_messages) + 1
                 self.debug_messages[index] = {tick = game.tick, ttl = ttl}
                 line = line + index - 1

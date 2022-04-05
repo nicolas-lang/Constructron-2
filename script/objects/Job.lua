@@ -43,7 +43,7 @@ setmetatable(
     }
 )
 
--- Job Constructor
+
 function Job:new(obj)
     Debug.new(self)
     self:log()

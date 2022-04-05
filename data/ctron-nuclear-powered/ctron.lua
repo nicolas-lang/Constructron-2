@@ -27,7 +27,7 @@ table.insert(ctron_nuclear_powered, constructron_grid)
 local spidertron_definition = {
     name = "ctron-nuclear-powered",
     grid = "constructron-nuclear-equipment-grid",
-    inventory_size = 90,
+    inventory_size = 82,
     trash_inventory_size = 30,
     movement_energy_consumption = "1MW",
     guns = {

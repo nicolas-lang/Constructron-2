@@ -10,7 +10,14 @@ local Ctron_solar_powered = {
         "ctron-solar-powered-battery-equipment"
     },
     managed_equipment_cols = 4,
-    robots = 20
+    construction_robots = {
+        type = "ctron-solar-powered-robot",
+        count = 20
+    },
+    inventory_filters = {
+        ["repair-pack"] = 1,
+        ["ctron-solar-powered-robot"] = 1
+    }
 }
 Ctron_solar_powered.__index = Ctron_solar_powered
 
@@ -31,6 +38,7 @@ function Ctron_solar_powered:new(entity)
     log("Ctron_solar_powered.new")
     Ctron.new(self, entity)
     self:setup_gear()
+    self:update_slot_filters()
 end
 
 function Ctron_solar_powered:tick_update()
@@ -76,10 +84,28 @@ function Ctron_solar_powered:status_update()
 
 end
 
+--[[
 function Ctron_solar_powered:set_request_items(request_items, item_whitelist)
     request_items = request_items or {}
-    request_items["construction-robot"] = (request_items["construction-robot"] or 0) + self.robots
+    --request_items["construction-robot"] = (request_items["construction-robot"] or 0) + self.robots
     Ctron.set_request_items(self, request_items, item_whitelist)
+end
+]]
+
+function Ctron_solar_powered:enable_construction()
+    self:log()
+    self:update_slot_filters()
+    Ctron.enable_construction(self)
+    inventory = self.entity.get_inventory(defines.inventory.spider_trunk)
+    inventory.insert({name = self.construction_robots.type , count = self.construction_robots.count})
+end
+
+function Ctron_solar_powered:disable_construction()
+    self:log()
+    self:update_slot_filters()
+    Ctron.disable_construction(self)
+    inventory = self.entity.get_inventory(defines.inventory.spider_trunk)
+    inventory.remove({name = self.construction_robots.type , count = 999})
 end
 
 return Ctron_solar_powered

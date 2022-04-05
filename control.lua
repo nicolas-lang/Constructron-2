@@ -31,13 +31,14 @@ local EntityClass = {
 -------------------------------------------------------------------------------
 
 Ctron.pathfinder = Spidertron_Pathfinder()
-local player_forces = {"player"} -- object model supports multiple forces, but we dont care about setting it up for now
+local player_forces = { "player" } -- object model supports multiple forces, but we dont care about setting it up for now
 local surface_managers = {}
 local entity_processing_queue
 
 -------------------------------------------------------------------------------
 -- various scripting
 -------------------------------------------------------------------------------
+--- @
 local function setup_surfaces()
     log("control:setup_surfaces")
 
@@ -187,7 +188,7 @@ end
 local function on_player_removed_equipment(event)
     log("control:on_player_removed_equipment")
     -- assumption: our managed gear if only exists in spidertrons, whenever a known gear is removed we treat the unit as a spidertron
-    -- every prototype has a fixed location where if will be placed which is csv encoded in the order field
+    -- every prototype has a fixed location where if will be placed which is csv encoded in the equipments order field
     if Ctron.managed_equipment[event.equipment] then
         game.players[event.player_index].remove_item {
             name = event.equipment,
@@ -271,31 +272,32 @@ local function on_entity_cloned(event)
         end
     end
 end
+
 -------------------------------------------------------------------------------
 -- event registration
 -------------------------------------------------------------------------------
 local ev = defines.events
 script.on_init(on_init)
 script.on_configuration_changed(on_init)
-script.on_event({ev.on_surface_created, ev.on_surface_deleted, ev.on_force_created, ev.on_forces_merged}, setup_surfaces)
+script.on_event({ ev.on_surface_created, ev.on_surface_deleted, ev.on_force_created, ev.on_forces_merged }, setup_surfaces)
 script.on_event(ev.on_tick, on_tick_once) -- replaced by on_nth_tick --> simple_movement_controller.main after 1st tick
 
 script.on_event(ev.on_player_removed_equipment, on_player_removed_equipment)
-script.on_event({ev.on_research_finished, ev.on_research_reversed}, on_research)
+script.on_event({ ev.on_research_finished, ev.on_research_reversed }, on_research)
 
 script.on_event(
     ev.on_entity_cloned,
     on_entity_cloned,
     {
-        {filter = "name", name = "service-station", invert = true, mode = "or"},
-        {filter = "name", name = "ctron-classic", invert = true, mode = "or"},
-        {filter = "name", name = "ctron-steam-powered", invert = true, mode = "or"},
-        {filter = "name", name = "ctron-solar-powered", invert = true, mode = "or"},
-        {filter = "name", name = "ctron-nuclear-powered", invert = true, mode = "or"},
-        {filter = "name", name = "ctron-rocket-powered", invert = true, mode = "or"}
+        { filter = "name", name = "service-station", invert = true, mode = "or" },
+        { filter = "name", name = "ctron-classic", invert = true, mode = "or" },
+        { filter = "name", name = "ctron-steam-powered", invert = true, mode = "or" },
+        { filter = "name", name = "ctron-solar-powered", invert = true, mode = "or" },
+        { filter = "name", name = "ctron-nuclear-powered", invert = true, mode = "or" },
+        { filter = "name", name = "ctron-rocket-powered", invert = true, mode = "or" }
     }
 )
-script.on_event({ev.on_entity_destroyed, ev.script_raised_destroy}, on_entity_destroyed)
+script.on_event({ ev.on_entity_destroyed, ev.script_raised_destroy }, on_entity_destroyed)
 
 script.on_event(
     ev.on_script_path_request_finished,
@@ -320,13 +322,13 @@ script.on_event(
     ev.on_entity_damaged,
     on_entity_damaged,
     {
-        {filter = "final-damage-amount", comparison = ">", value = 20, mode = "and"},
-        {filter = "final-health", comparison = ">", value = 0, mode = "and"},
-        {filter = "robot-with-logistics-interface", invert = true, mode = "and"},
-        {filter = "vehicle", invert = true, mode = "and"},
-        {filter = "rolling-stock", invert = true, mode = "and"},
-        {filter = "type", type = "character", invert = true, mode = "and"},
-        {filter = "type", type = "fish", invert = true, mode = "and"}
+        { filter = "final-damage-amount", comparison = ">", value = 20, mode = "and" },
+        { filter = "final-health", comparison = ">", value = 0, mode = "and" },
+        { filter = "robot-with-logistics-interface", invert = true, mode = "and" },
+        { filter = "vehicle", invert = true, mode = "and" },
+        { filter = "rolling-stock", invert = true, mode = "and" },
+        { filter = "type", type = "character", invert = true, mode = "and" },
+        { filter = "type", type = "fish", invert = true, mode = "and" }
     }
 )
 
@@ -334,8 +336,8 @@ script.on_event(
     ev.on_marked_for_upgrade,
     on_entity_marked,
     {
-        {filter = "vehicle", invert = true, mode = "and"},
-        {filter = "rolling-stock", invert = true, mode = "and"}
+        { filter = "vehicle", invert = true, mode = "and" },
+        { filter = "rolling-stock", invert = true, mode = "and" }
     }
 )
 
@@ -343,8 +345,8 @@ script.on_event(
     ev.on_marked_for_deconstruction,
     on_entity_marked,
     {
-        {filter = "name", name = "item-on-ground", invert = true, mode = "and"},
-        {filter = "type", type = "fish", invert = true, mode = "and"}
+        { filter = "name", name = "item-on-ground", invert = true, mode = "and" },
+        { filter = "type", type = "fish", invert = true, mode = "and" }
     }
 )
 
@@ -380,7 +382,7 @@ end
 -- not implemented
 local function reset()
     log("control:reset")
-    game.print("Constructron: !!! hard reset !!!", {r = 1, g = 0.2, b = 0.2})
+    game.print("Constructron: !!! hard reset !!!", { r = 1, g = 0.2, b = 0.2 })
     for k, _ in pairs(global) do
         global[k] = nil
     end
@@ -423,7 +425,7 @@ local ctron_commands = {
 }
 commands.add_command(
     "ctron",
-    "type /ctron rescan to queue all surfaces for a ghost rescan",
+    "/ctron rescan|reset|pause",
     function(param)
         log("/ctron " .. (param.parameter or ""))
         --local player = game.players[param.player_index]

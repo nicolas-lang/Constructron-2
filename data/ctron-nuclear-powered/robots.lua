@@ -3,7 +3,7 @@ local ctron_nuclear_powered = {}
 
 local ctron_nuclear_powered_robot =
     lib_robots.make_robot(
-    "construction",
+    "robot",
     {
         name = "ctron-nuclear-powered-robot",
         max_payload_size = 5,
@@ -15,7 +15,8 @@ local ctron_nuclear_powered_robot =
                 percent = 100
             }
         }
-    }
+    },
+    "__Constructron-2__/graphics/robots/nuclear-construction-robot/"
 )
 table.insert(ctron_nuclear_powered, ctron_nuclear_powered_robot)
 
@@ -25,7 +26,8 @@ local ctron_nuclear_powered_robot_item =
     {
         name = "ctron-nuclear-powered-robot",
         place_result = "ctron-nuclear-powered-robot"
-    }
+    },
+    "__Constructron-2__/graphics/robots/nuclear-construction-robot/"
 )
 table.insert(ctron_nuclear_powered, ctron_nuclear_powered_robot_item)
 

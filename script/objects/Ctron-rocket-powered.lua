@@ -12,7 +12,14 @@ local Ctron_rocket_powered = {
     },
     managed_equipment_cols = 4,
     fuel = "rocket-fuel",
-    robots = 5
+    construction_robots = {
+        type = "ctron-rocket-powered-robot",
+        count = 5
+    },
+    inventory_filters = {
+        ["repair-pack"] = 1,
+        ["ctron-rocket-powered-robot"] = 1
+    }
 }
 
 Ctron_rocket_powered.__index = Ctron_rocket_powered
@@ -34,6 +41,7 @@ function Ctron_rocket_powered:new(entity)
     log("Ctron_rocket_powered.new")
     Ctron.new(self, entity)
     self:setup_gear()
+    self:update_slot_filters()
 end
 
 function Ctron_rocket_powered:tick_update()
@@ -61,7 +69,7 @@ end
 function Ctron_rocket_powered:set_request_items(request_items, item_whitelist)
     request_items = request_items or {}
     request_items[self.fuel] = (request_items[self.fuel] or 0) + control_lib.get_stack_size(self.fuel) * #(self.entity.burner.inventory)
-    request_items["construction-robot"] = (request_items["construction-robot"] or 0) + self.robots
+    --request_items["construction-robot"] = (request_items["construction-robot"] or 0) + self.robots
     Ctron.set_request_items(self, request_items, item_whitelist)
 end
 
@@ -72,11 +80,22 @@ function Ctron_rocket_powered:go_to(target)
     end
 end
 
-function Ctron_rocket_powered:enable_constrcution()
-    Ctron.enable_constrcution(self)
+function Ctron_rocket_powered:enable_construction()
+    self:log()
+    self:update_slot_filters()
+    Ctron.enable_construction(self)
+    inventory = self.entity.get_inventory(defines.inventory.spider_trunk)
+    inventory.insert({name = self.construction_robots.type , count = self.construction_robots.count})
 end
-function Ctron_rocket_powered:disable_constrcution()
-    Ctron.enable_constrcution(self)
+
+function Ctron_rocket_powered:disable_construction()
+    self:log()
+    self:update_slot_filters()
+    Ctron.disable_construction(self)
+    inventory = self.entity.get_inventory(defines.inventory.spider_trunk)
+    inventory.remove({name = self.construction_robots.type , count = 999})
 end
+
+
 
 return Ctron_rocket_powered
