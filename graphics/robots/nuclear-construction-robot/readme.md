@@ -1,0 +1,1 @@
+gfx from https://mods.factorio.com/mod/AtomicBots by FunCarcass
