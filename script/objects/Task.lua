@@ -2,7 +2,7 @@ local custom_lib = require("__Constructron-2__.data.lib.custom_lib")
 local control_lib = require("__Constructron-2__.script.lib.control_lib")
 local Debug = require("__Constructron-2__.script.objects.Debug")
 
--- class Type Task, nil members exist just to describe fields
+---@class Task : Debug
 local Task = {
     class_name = "Task",
     area = nil,

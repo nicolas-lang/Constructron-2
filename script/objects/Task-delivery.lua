@@ -1,6 +1,6 @@
 local Task = require("__Constructron-2__.script.objects.Task")
 
--- class Type Task_delivery, nil members exist just to describe fields
+---@class Task_delivery : Task
 local Task_delivery = {
     class_name = "Task_delivery"
 }

@@ -1,6 +1,6 @@
 local Ctron = require("__Constructron-2__.script.objects.Ctron")
 
--- class Type Ctron_solar_powered, nil members exist just to describe fields
+---@class Ctron_solar_powered : Ctron
 local Ctron_solar_powered = {
     class_name = "Ctron_solar_powered",
     gear = {

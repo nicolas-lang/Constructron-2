@@ -1,6 +1,6 @@
 local Debug = require("__Constructron-2__.script.objects.Debug")
 
--- class Type Station, nil members exist just to describe fields
+---@class Station : Debug
 local Station = {
     class_name = "Station",
     -- <base game spidertron entity unit_number used as PK for everything>

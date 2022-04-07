@@ -1,7 +1,7 @@
 --local custom_lib = require("__Constructron-2__.data.lib.custom_lib")
 local Debug = require("__Constructron-2__.script.objects.Debug")
 
--- class Type Task, nil members exist just to describe fields
+---@class Entity_queue : Debug
 local Entity_queue = {
     class_name = "Entity_queue",
     max_chunks_per_call = 20,

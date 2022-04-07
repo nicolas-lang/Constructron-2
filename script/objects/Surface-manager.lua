@@ -6,7 +6,7 @@ local Debug = require("__Constructron-2__.script.objects.Debug")
 local Job = require("__Constructron-2__.script.objects.Job")
 local Ctron = require("__Constructron-2__.script.objects.Ctron")
 
--- class Type Surface_manager, nil members exist just to describe fields
+---@class Surface_manager : Debug
 local Surface_manager = {
     class_name = "Surface_manager"
 }

@@ -1,7 +1,7 @@
 local Debug = require("__Constructron-2__.script.objects.Debug")
 local custom_lib = require("__Constructron-2__.data.lib.custom_lib")
 
--- class Type Job, nil members exist just to describe fields
+---@class Job : Debug
 local Job = {
     class_name = "Job",
     area = nil,

@@ -1,6 +1,7 @@
 ﻿local Ctron = require("__Constructron-2__.script.objects.Ctron")
 
--- class Type Ctron_classic
+
+---@class Ctron_classic : Ctron
 local Ctron_classic = {
     class_name = "Ctron_classic",
 }

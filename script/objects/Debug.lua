@@ -1,6 +1,6 @@
 local util = require("util")
 local custom_lib = require("__Constructron-2__.data.lib.custom_lib")
--- class Type Debug, nil members exist just to describe fields
+---@class Debug
 local Debug = {
     class_name = "Debug",
     debug = true,

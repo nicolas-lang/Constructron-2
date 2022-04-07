@@ -4,6 +4,7 @@ local control_lib = require("__Constructron-2__.script.lib.control_lib")
 local cust_lib = require("__Constructron-2__.data.lib.custom_lib")
 local collision_mask_util_extended = require("__Constructron-2__.script.lib.collision-mask-util-control")
 
+---@class Spidertron_Pathfinder
 local Spidertron_Pathfinder = {
     class_name = "Spidertron_Pathfinder",
     clean_linear_path_enabled = false,

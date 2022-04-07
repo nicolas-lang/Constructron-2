@@ -1,7 +1,7 @@
 local Ctron = require("__Constructron-2__.script.objects.Ctron")
 local control_lib = require("__Constructron-2__.script.lib.control_lib")
 
--- class Type Ctron_steam_powered, nil members exist just to describe fields
+---@class Ctron_steam_powered : Ctron
 local Ctron_steam_powered = {
     class_name = "Ctron_steam_powered",
     gear = {
