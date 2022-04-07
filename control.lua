@@ -31,14 +31,17 @@ local EntityClass = {
 -------------------------------------------------------------------------------
 
 Ctron.pathfinder = Spidertron_Pathfinder()
+---@table
 local player_forces = { "player" } -- object model supports multiple forces, but we dont care about setting it up for now
+---@table
 local surface_managers = {}
+
 local entity_processing_queue
 
 -------------------------------------------------------------------------------
 -- various scripting
 -------------------------------------------------------------------------------
---- @
+---comment
 local function setup_surfaces()
     log("control:setup_surfaces")
 
@@ -62,7 +65,11 @@ local function setup_surfaces()
 end
 
 --- Sets up a Entity-Wrapper-Instance for the given entity.
+
 -- @param entity a factorio:LuaEntity object
+---comment
+---@param entity LuaEntity
+---@return boolean
 local function init_entity_instance(entity)
     log("control:init_entity_instance")
     if EntityClass[entity.name] then
@@ -77,6 +84,8 @@ local function init_entity_instance(entity)
     end
 end
 
+---comment
+---@param entity LuaEntity
 local function assign_entity_to_surface(entity)
     log("control:assign_entity_to_surface")
     if not EntityClass[entity.name] then
@@ -92,7 +101,7 @@ end
 -- event callback
 -------------------------------------------------------------------------------
 --- Initializes required globals
--- @see https://lua-api.factorio.com/latest/Data-Lifecycle.html
+--- @see https://lua-api.factorio.com/latest/Data-Lifecycle.html
 local function on_init()
     log("control:on_init")
     global.pause_processing = global.pause_processing or false
@@ -109,8 +118,8 @@ local function on_init()
     Ctron.update_tech_unlocks()
 end
 
---- main worker unit updates
--- @param event from factorio framework
+---main worker unit updates
+---@param _ EventData
 local function on_nth_tick_300(_)
     log("control:on_nth_tick_300")
     for force_index, _ in pairs(surface_managers) do
@@ -121,7 +130,7 @@ local function on_nth_tick_300(_)
 end
 
 --- main worker for unit/job processing
--- @param event from factorio framework
+---@param _ EventData
 local function on_nth_tick_60(_)
     log("control:on_nth_tick_60")
     if global.pause_processing then
@@ -147,10 +156,12 @@ local function on_nth_tick_60(_)
     end
 end
 
---- main object initialization is expected to be scheduled to run on_tick
+
+--- NEEDS to be migrated to on_load() for desync safety
+-- main object initialization is expected to be scheduled to run on_tick
 -- on_tick will be unscheduled
 -- schedules on_nth_tick_120
--- @param event from factorio framework
+---@param _ EventData
 local function on_tick_once(_)
     log("control:on_tick_once")
     Ctron.init_managed_gear()
@@ -184,7 +195,7 @@ local function on_tick_once(_)
 end
 
 --- Event handler on_player_removed_equipment
--- @param event from factorio framework
+---@param event on_player_removed_equipment
 local function on_player_removed_equipment(event)
     log("control:on_player_removed_equipment")
     -- assumption: our managed gear if only exists in spidertrons, whenever a known gear is removed we treat the unit as a spidertron
@@ -198,13 +209,15 @@ local function on_player_removed_equipment(event)
     end
 end
 
+---comment
+---@param _ on_research_reversed|on_research_finished
 local function on_research(_)
     log("control:on_research")
     Ctron.update_tech_unlocks()
 end
 
 --- Event handler on_built_entity
--- @param event from factorio framework
+---@param event on_built_entity
 local function on_built_entity(event)
     log("control:on_built_entity")
     local entity = event.created_entity
@@ -216,21 +229,21 @@ local function on_built_entity(event)
 end
 
 --- Event handler on_post_entity_died
--- @param event from factorio framework
+---@param event on_post_entity_died
 local function on_post_entity_died(event)
     log("control:on_post_entity_died")
     entity_processing_queue:queue_entity(event.ghost, event.tick, "construction")
 end
 
 --- Event handler on_entity_marked_for_upgrade and on_entity_marked_for_deconstruction
--- @param event from factorio framework
+---@param event on_marked_for_deconstruction|on_marked_for_upgrade
 local function on_entity_marked(event)
     log("control:on_entity_marked_for_*")
     entity_processing_queue:queue_entity(event.entity, event.tick, "upgrade/deconstruction")
 end
 
 --- Event handler on_entity_damaged
--- @param event from factorio framework
+---@param event on_entity_damaged
 local function on_entity_damaged(event)
     log("control:on_entity_damaged ")
     if event.force == "player" and (event.final_health / (event.final_damage_amount + event.final_health)) < 0.90 then
@@ -240,8 +253,9 @@ local function on_entity_damaged(event)
 end
 
 --- Event handler on_entity_destroyed
--- @param event from factorio framework
--- @returns nil just to function flow
+---comment
+---@param event on_entity_destroyed
+---@return any
 local function on_entity_destroyed(event)
     log("contrl:on_entity_destroyed")
     log(serpent.block(event))
@@ -257,7 +271,7 @@ local function on_entity_destroyed(event)
 end
 
 --- Event handler on_entity_cloned
--- @param event from factorio framework
+---@param event on_entity_cloned
 local function on_entity_cloned(event)
     log("control:on_entity_cloned")
     local entity = event.destination
@@ -357,6 +371,7 @@ script.on_event(
 --- pauses statemachine and queue processing
 -- only pauses statemachine and queue processing, not initial event capture
 -- on unpause every ctron might have it's current task run into timeout
+---@return boolean
 local function toggle_pause()
     log("control:toggle_pause")
     global.pause_processing = not global.pause_processing
@@ -379,7 +394,6 @@ local function rescan_all_surfaces()
 end
 
 --- full hardreset of everything
--- not implemented
 local function reset()
     log("control:reset")
     game.print("Constructron: !!! hard reset !!!", { r = 1, g = 0.2, b = 0.2 })
@@ -401,7 +415,8 @@ local function reset()
     global.pause_processing = false
 end
 
---- get_stats
+---comment
+---@return table
 local function get_stats()
     log("control:get_stats")
     local stats = {}
