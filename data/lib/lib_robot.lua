@@ -71,6 +71,23 @@ local spark_animations = {
         animation_speed = 0.3
     }
 }
+local function robot_reflection(scale)
+return
+{
+  pictures =
+  {
+    filename = "__base__/graphics/entity/construction-robot/construction-robot-reflection.png",
+    priority = "extra-high",
+    width = 12,
+    height = 12,
+    shift = util.by_pixel(0, 105),
+    variation_count = 1,
+    scale = 5 * scale
+  },
+  rotate = false,
+  orientation_to_variation = false
+}
+end
 
 local function make_robot_animation(animation_type, image_base)
     image_base = image_base or "__Constructron-2__/graphics/robots/construction-robot/robot-icon.png"
