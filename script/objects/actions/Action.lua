@@ -2,7 +2,8 @@
 local Debug = require("__Constructron-2__.script.objects.Debug")
 local Ctron = require("__Constructron-2__.script.objects.Ctron")
 
--- class Type Action, nil members exist just to describe fields
+---@class Action : Debug
+---@field surfacemanager Surface_manager
 local Action = {
     class_name = "Action"
 }

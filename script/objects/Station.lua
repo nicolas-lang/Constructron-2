@@ -25,10 +25,12 @@ setmetatable(
     }
 )
 
--- Station Constructor
+---comment
+---@param entity LuaEntity
 function Station:new(entity)
     self:log()
     if entity and entity.valid then
+        self.id = entity.unit_number
         self.entity = entity
         self.unit_number = entity.unit_number
         self.name = entity.name

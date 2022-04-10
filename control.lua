@@ -7,35 +7,47 @@ local custom_lib = require("__Constructron-2__.data.lib.custom_lib")
 --local control_lib = require("__Constructron-2__.script.lib.control_lib")
 
 -- Classe based things requireing initialization
+---@type Ctron
 local Ctron = require("__Constructron-2__.script.objects.Ctron")
+---@type Surface_manager
 local Surface_manager = require("__Constructron-2__.script.objects.Surface-manager")
+---@type Task
 local Task = require("__Constructron-2__.script.objects.Task")
+---@type Job
 local Job = require("__Constructron-2__.script.objects.Job")
+---@type Spidertron_Pathfinder
 local Spidertron_Pathfinder = require("__Constructron-2__.script.objects.Spidertron-pathfinder")
+---@type Entity_queue
 local Entity_processing_queue = require("__Constructron-2__.script.objects.Entity-processing-queue")
 
 local EntityClass = {
+    ---@type Ctron
     ["ctron-classic"] = require("__Constructron-2__.script.objects.Ctron-classic"),
+    ---@type Ctron
     ["ctron-steam-powered"] = require("__Constructron-2__.script.objects.Ctron-steam-powered"),
+    ---@type Ctron
     ["ctron-solar-powered"] = require("__Constructron-2__.script.objects.Ctron-solar-powered"),
+    ---@type Ctron
     ["ctron-nuclear-powered"] = require("__Constructron-2__.script.objects.Ctron-nuclear-powered"),
+    ---@type Ctron
     ["ctron-rocket-powered"] = require("__Constructron-2__.script.objects.Ctron-rocket-powered"),
+    ---@type Station
     ["service-station"] = require("__Constructron-2__.script.objects.Station")
 }
-
--- will be replaced later
---local simple_movement_controller = require("__Constructron-2__.script.simple_movement_controller")
 
 -------------------------------------------------------------------------------
 --  runtime variables & Class instanciation
 -------------------------------------------------------------------------------
-
 Ctron.pathfinder = Spidertron_Pathfinder()
----@table
-local player_forces = { "player" } -- object model supports multiple forces, but we dont care about setting it up for now
----@table
+--- object model supports multiple forces, but we dont care about setting it up for now
+---@type table<uint,string>
+local player_forces = {"player"}
+---Surface managers are currently initialized as a local based on game.surfaces, TBD if that is desync safe
+---@type table<uint,table<uint,Surface_manager>>
 local surface_managers = {}
 
+--- class instance Entity_processing_queue
+---@type Entity_queue
 local entity_processing_queue
 
 -------------------------------------------------------------------------------
@@ -86,11 +98,14 @@ end
 
 ---comment
 ---@param entity LuaEntity
-local function assign_entity_to_surface(entity)
+---@param force LuaForce
+local function assign_entity_to_surface(entity, force)
     log("control:assign_entity_to_surface")
     if not EntityClass[entity.name] then
-        if surface_managers[entity.surface.index] and surface_managers[entity.surface.index][entity.force.index] then
-            surface_managers[entity.surface.index][entity.force.index]:register_entity(entity)
+        if surface_managers[entity.surface.index] and surface_managers[entity.surface.index][force.index] then
+            surface_managers[entity.surface.index][force.index]:register_entity(entity)
+        else
+            log("WTF!?")
         end
     else
         init_entity_instance(entity)
@@ -155,7 +170,6 @@ local function on_nth_tick_60(_)
         end
     end
 end
-
 
 --- NEEDS to be migrated to on_load() for desync safety
 -- main object initialization is expected to be scheduled to run on_tick
@@ -222,7 +236,7 @@ local function on_built_entity(event)
     log("control:on_built_entity")
     local entity = event.created_entity
     if entity and entity.valid then
-        if not entity_processing_queue:queue_entity(entity, event.tick, "construction") then
+        if not entity_processing_queue:queue_entity(entity, entity.force, event.tick, "construction") then
             init_entity_instance(entity)
         end
     end
@@ -232,14 +246,16 @@ end
 ---@param event on_post_entity_died
 local function on_post_entity_died(event)
     log("control:on_post_entity_died")
-    entity_processing_queue:queue_entity(event.ghost, event.tick, "construction")
+    entity_processing_queue:queue_entity(event.ghost, event.ghost.force, event.tick, "construction")
 end
 
 --- Event handler on_entity_marked_for_upgrade and on_entity_marked_for_deconstruction
 ---@param event on_marked_for_deconstruction|on_marked_for_upgrade
+--- TODO: Neutral
 local function on_entity_marked(event)
     log("control:on_entity_marked_for_*")
-    entity_processing_queue:queue_entity(event.entity, event.tick, "upgrade/deconstruction")
+    local player = game.players[event.player_index]
+    entity_processing_queue:queue_entity(event.entity, player.force, event.tick, "upgrade/deconstruction")
 end
 
 --- Event handler on_entity_damaged
@@ -248,7 +264,7 @@ local function on_entity_damaged(event)
     log("control:on_entity_damaged ")
     if event.force == "player" and (event.final_health / (event.final_damage_amount + event.final_health)) < 0.90 then
         --custom_lib.table_has_value(player_forces,event.force)
-        entity_processing_queue:queue_entity(event.entity, event.tick, "repair")
+        entity_processing_queue:queue_entity(event.entity, entity.force, event.tick, "repair")
     end
 end
 
@@ -275,7 +291,7 @@ end
 local function on_entity_cloned(event)
     log("control:on_entity_cloned")
     local entity = event.destination
-    if EntityClass[entity.name] then
+    if entity and EntityClass[entity.name] then
         --register at new surface
         local obj = EntityClass[entity.name](entity)
         if entity.name == "service-station" then
@@ -293,30 +309,30 @@ end
 local ev = defines.events
 script.on_init(on_init)
 script.on_configuration_changed(on_init)
-script.on_event({ ev.on_surface_created, ev.on_surface_deleted, ev.on_force_created, ev.on_forces_merged }, setup_surfaces)
-script.on_event(ev.on_tick, on_tick_once) -- replaced by on_nth_tick --> simple_movement_controller.main after 1st tick
+script.on_event({ev.on_surface_created, ev.on_surface_deleted, ev.on_force_created, ev.on_forces_merged}, setup_surfaces)
+script.on_event(ev.on_tick, on_tick_once) -- replaced by on_nth_tick --> fix this, we will desync
 
 script.on_event(ev.on_player_removed_equipment, on_player_removed_equipment)
-script.on_event({ ev.on_research_finished, ev.on_research_reversed }, on_research)
+script.on_event({ev.on_research_finished, ev.on_research_reversed}, on_research)
 
 script.on_event(
     ev.on_entity_cloned,
     on_entity_cloned,
     {
-        { filter = "name", name = "service-station", invert = true, mode = "or" },
-        { filter = "name", name = "ctron-classic", invert = true, mode = "or" },
-        { filter = "name", name = "ctron-steam-powered", invert = true, mode = "or" },
-        { filter = "name", name = "ctron-solar-powered", invert = true, mode = "or" },
-        { filter = "name", name = "ctron-nuclear-powered", invert = true, mode = "or" },
-        { filter = "name", name = "ctron-rocket-powered", invert = true, mode = "or" }
+        {filter = "name", name = "service-station", mode = "or"},
+        {filter = "name", name = "ctron-classic", mode = "or"},
+        {filter = "name", name = "ctron-steam-powered", mode = "or"},
+        {filter = "name", name = "ctron-solar-powered", mode = "or"},
+        {filter = "name", name = "ctron-nuclear-powered", mode = "or"},
+        {filter = "name", name = "ctron-rocket-powered", mode = "or"}
     }
 )
-script.on_event({ ev.on_entity_destroyed, ev.script_raised_destroy }, on_entity_destroyed)
+script.on_event({ev.on_entity_destroyed, ev.script_raised_destroy}, on_entity_destroyed)
 
 script.on_event(
     ev.on_script_path_request_finished,
     (function(event)
-        Spidertron_Pathfinder:on_script_path_request_finished(event)
+        Ctron.pathfinder:on_script_path_request_finished(event)
     end)
 )
 
@@ -336,13 +352,13 @@ script.on_event(
     ev.on_entity_damaged,
     on_entity_damaged,
     {
-        { filter = "final-damage-amount", comparison = ">", value = 20, mode = "and" },
-        { filter = "final-health", comparison = ">", value = 0, mode = "and" },
-        { filter = "robot-with-logistics-interface", invert = true, mode = "and" },
-        { filter = "vehicle", invert = true, mode = "and" },
-        { filter = "rolling-stock", invert = true, mode = "and" },
-        { filter = "type", type = "character", invert = true, mode = "and" },
-        { filter = "type", type = "fish", invert = true, mode = "and" }
+        {filter = "final-damage-amount", comparison = ">", value = 20, mode = "and"},
+        {filter = "final-health", comparison = ">", value = 0, mode = "and"},
+        {filter = "robot-with-logistics-interface", invert = true, mode = "and"},
+        {filter = "vehicle", invert = true, mode = "and"},
+        {filter = "rolling-stock", invert = true, mode = "and"},
+        {filter = "type", type = "character", invert = true, mode = "and"},
+        {filter = "type", type = "fish", invert = true, mode = "and"}
     }
 )
 
@@ -350,8 +366,8 @@ script.on_event(
     ev.on_marked_for_upgrade,
     on_entity_marked,
     {
-        { filter = "vehicle", invert = true, mode = "and" },
-        { filter = "rolling-stock", invert = true, mode = "and" }
+        {filter = "vehicle", invert = true, mode = "and"},
+        {filter = "rolling-stock", invert = true, mode = "and"}
     }
 )
 
@@ -359,8 +375,8 @@ script.on_event(
     ev.on_marked_for_deconstruction,
     on_entity_marked,
     {
-        { filter = "name", name = "item-on-ground", invert = true, mode = "and" },
-        { filter = "type", type = "fish", invert = true, mode = "and" }
+        --{filter = "name", name = "item-on-ground", invert = true, mode = "and"},
+        {filter = "type", type = "fish", invert = true, mode = "and"}
     }
 )
 
@@ -396,7 +412,7 @@ end
 --- full hardreset of everything
 local function reset()
     log("control:reset")
-    game.print("Constructron: !!! hard reset !!!", { r = 1, g = 0.2, b = 0.2 })
+    game.print("Constructron: !!! hard reset !!!", {r = 1, g = 0.2, b = 0.2})
     for k, _ in pairs(global) do
         global[k] = nil
     end

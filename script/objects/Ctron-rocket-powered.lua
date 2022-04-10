@@ -84,7 +84,7 @@ function Ctron_rocket_powered:enable_construction()
     self:log()
     self:update_slot_filters()
     Ctron.enable_construction(self)
-    inventory = self.entity.get_inventory(defines.inventory.spider_trunk)
+    local inventory = self.entity.get_inventory(defines.inventory.spider_trunk)
     inventory.insert({name = self.construction_robots.type , count = self.construction_robots.count})
 end
 
@@ -92,7 +92,7 @@ function Ctron_rocket_powered:disable_construction()
     self:log()
     self:update_slot_filters()
     Ctron.disable_construction(self)
-    inventory = self.entity.get_inventory(defines.inventory.spider_trunk)
+    local inventory = self.entity.get_inventory(defines.inventory.spider_trunk)
     inventory.remove({name = self.construction_robots.type , count = 999})
 end
 

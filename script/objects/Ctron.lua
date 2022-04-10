@@ -6,6 +6,7 @@ local custom_lib = require("__Constructron-2__.data.lib.custom_lib")
 ---@class Ctron : Debug
 ---@field entity LuaEntity
 ---@field status table<string, number>
+---@field pathfinder Spidertron_Pathfinder
 local Ctron = {
     class_name = "Ctron",
     -- <base game spidertron entity unit_number used as PK for everything>
@@ -200,11 +201,14 @@ function Ctron:status_update()
         end
 
         if self.target then
+            -- if travel times out alert the player
             return self:set_status(Ctron.status.traveling)
         end
 
         if self:is_moving() == false and self.construction_enabled then
             if self:robots_inactive() == false then
+                --todo add timeout
+                --also: if robots time-out we need to collect them --> drop items on the floor mark them for decon and destroy the robots
                 return self:set_status(Ctron.status.robots_active)
             end
 
@@ -220,6 +224,7 @@ function Ctron:status_update()
             local active_logistic_requests = self:get_logistic_status() or {}
             if custom_lib.table_length(active_logistic_requests) > 0 then
                 --todo check if items are avaliable at all in network
+                --todo add timeout
                 return self:set_status(Ctron.status.requesting)
             end
         end
@@ -630,6 +635,15 @@ function Ctron:disable_construction()
 end
 
 ---comment
+function Ctron:cancel_requests()
+    self:log()
+    self:attach_text(self.entity, "cancel_requests", self.debug_definition.lines.dynamic, 2)
+    for i = 1, self.entity.request_slot_count do
+        self.entity.clear_vehicle_logistic_slot(i)
+    end
+end
+
+---comment
 ---@return boolean
 function Ctron:robots_active()
     self:log()
@@ -664,6 +678,7 @@ function Ctron:set_autopilot(path)
         --log("set_autopilot")
         self.entity.autopilot_destination = nil
         self:disable_construction()
+        self:cancel_requests()
         for i, waypoint in ipairs(path) do
             self.entity.add_autopilot_destination(waypoint.position)
             self.target = waypoint.position

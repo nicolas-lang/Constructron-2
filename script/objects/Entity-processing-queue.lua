@@ -6,7 +6,7 @@ local Entity_queue = {
     class_name = "Entity_queue",
     max_chunks_per_call = 20,
     max_entities_per_call = 5000,
-    processing_delay = 60 * 5
+    processing_delay = 60 * 2
 }
 Entity_queue.__index = Entity_queue
 
@@ -21,17 +21,18 @@ setmetatable(
         end
     }
 )
--- Task Constructor
+---comment
+---@param callback function
 function Entity_queue:new(callback)
     Debug.new(self)
-    self.entity_processing_callback = function(_, entity)
+    self.entity_processing_callback = function(_, entity, force)
         log("self:callback")
-        self:log("callback" .. serpent.block(entity))
-        callback(entity)
+        self:log("callback" .. serpent.block(entity) .. serpent.block(force))
+        callback(entity,force)
     end
 end
 
--- Generic Type based initialization
+---comment
 function Entity_queue.init_globals()
     global.entity_processing_queue = global.entity_processing_queue or {}
     global.chunk_processing_queue = global.chunk_processing_queue or {}
@@ -39,11 +40,12 @@ end
 
 -- Class Methods
 
---- Processes the global entity queue.
--- the entity_processing_queue contains entities that needs to be checked for construction tasks
--- @see process_chunk_queue
--- @see on_built_entity
--- @see on_entity_marked
+---Processes the global entity queue.
+---the entity_processing_queue contains entities that needs to be checked for construction tasks
+---@see process_chunk_queue
+---@see on_built_entity
+---@see on_entity_marked
+---@return boolean
 function Entity_queue:process_entity_queue()
     self:log()
     local c = 0
@@ -61,7 +63,7 @@ function Entity_queue:process_entity_queue()
                     log("processing entity:")
                     log("entity.type " .. (entity.type or "nil"))
                     log("entity.name " .. (entity.name or "nil"))
-                    self:entity_processing_callback(entity)
+                    self:entity_processing_callback(entity, entity.force)
                     c = c + 1
                 end
                 entities[entity_index] = nil
@@ -77,11 +79,12 @@ function Entity_queue:process_entity_queue()
     return (c > 0)
 end
 
---- Processes the global chunk queue.
--- the chunk_processing_queue contains chunks that needs to be checked for constructable objects
--- identified entities are registered with the entity_processing_queue
--- @see process_entity_queue
--- @see rescan_all_surfaces
+---Processes the global chunk queue.
+---The chunk_processing_queue contains chunks that needs to be checked for constructable objects
+---Identified entities are registered with the entity_processing_queue
+---@see process_entity_queue
+---@see rescan_all_surfaces
+---@return boolean
 function Entity_queue:process_chunk_queue()
     self:log()
     local c = 0
@@ -124,9 +127,14 @@ function Entity_queue:process_chunk_queue()
     return (c > 0)
 end
 
---- queue entity
--- @param event from factorio framework
-function Entity_queue:queue_entity(entity, tick, build_type)
+---queue entity
+---TODO: also save and queue entity force --> obj {entity,force}
+---@param entity LuaEntity
+---@param force LuaForce
+---@param tick int
+---@param build_type string
+---@return boolean
+function Entity_queue:queue_entity(entity, force,  tick, build_type)
     self:log()
     if entity and entity.valid then
         tick = tick or game.tick
@@ -146,8 +154,8 @@ function Entity_queue:queue_entity(entity, tick, build_type)
     end
 end
 
---- queue chunk
--- @param event from factorio framework
+---queue chunk
+---@param chunk table
 function Entity_queue:queue_chunk(chunk)
     self:log()
     if chunk and chunk.valid then

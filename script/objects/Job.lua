@@ -43,7 +43,6 @@ setmetatable(
     }
 )
 
-
 function Job:new(obj)
     Debug.new(self)
     self:log()
@@ -184,6 +183,27 @@ function Job:get_items()
         custom_lib.merge_add(items, task:get_items())
     end
     return items
+end
+
+function Job:get_position()
+    self:log()
+    local position = {x = 0, y = 0}
+    if next(self.tasks) then
+        local c = 0
+        for _, task in pairs(self.tasks) do
+            local task_position = task:get_position()
+            if task_position then
+                position.x = task_position.x
+                position.y = task_position.y
+                c = c + 1
+            end
+        end
+        if c > 0 then
+            position.x = math.floor(position.x / c * 1000 + 0.5) / 1000
+            position.y = math.floor(position.y / c * 1000 + 0.5) / 1000
+            return position
+        end
+    end
 end
 
 return Job
