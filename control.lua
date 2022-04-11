@@ -264,7 +264,7 @@ local function on_entity_damaged(event)
     log("control:on_entity_damaged ")
     if event.force == "player" and (event.final_health / (event.final_damage_amount + event.final_health)) < 0.90 then
         --custom_lib.table_has_value(player_forces,event.force)
-        entity_processing_queue:queue_entity(event.entity, entity.force, event.tick, "repair")
+        entity_processing_queue:queue_entity(event.entity, event.entity.force, event.tick, "repair")
     end
 end
 

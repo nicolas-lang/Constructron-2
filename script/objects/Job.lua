@@ -1,7 +1,5 @@
 local Debug = require("__Constructron-2__.script.objects.Debug")
 local custom_lib = require("__Constructron-2__.data.lib.custom_lib")
-local Task_construction = require("__Constructron-2__.script.objects.Task-construction")
-local Task_delivery = require("__Constructron-2__.script.objects.Task-delivery")
 
 ---@class Job : Debug
 ---@field status table<string,uint>

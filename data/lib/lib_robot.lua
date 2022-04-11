@@ -72,21 +72,19 @@ local spark_animations = {
     }
 }
 local function robot_reflection(scale)
-return
-{
-  pictures =
-  {
-    filename = "__base__/graphics/entity/construction-robot/construction-robot-reflection.png",
-    priority = "extra-high",
-    width = 12,
-    height = 12,
-    shift = util.by_pixel(0, 105),
-    variation_count = 1,
-    scale = 5 * scale
-  },
-  rotate = false,
-  orientation_to_variation = false
-}
+    return {
+        pictures = {
+            filename = "__base__/graphics/entity/construction-robot/construction-robot-reflection.png",
+            priority = "extra-high",
+            width = 12,
+            height = 12,
+            shift = util.by_pixel(0, 105),
+            variation_count = 1,
+            scale = 5 * scale
+        },
+        rotate = false,
+        orientation_to_variation = false
+    }
 end
 
 local function make_robot_animation(animation_type, image_base)
@@ -212,7 +210,7 @@ function lib_robots.make_robot(template, params, image_base)
             prototype.shadow_idle_with_cargo = make_robot_animation("shadow", image_base)
             prototype.shadow_in_motion = make_robot_animation("shadow", image_base)
             prototype.shadow_in_motion_with_cargo = make_robot_animation("shadow", image_base)
-            
+
             prototype.working = make_robot_animation("working", image_base)
             prototype.shadow_working = make_robot_animation("working_shadow", image_base)
         end
