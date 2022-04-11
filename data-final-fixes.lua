@@ -4,6 +4,7 @@ local constructron_collision_mask = {
     "colliding-with-tiles-only",
     "not-colliding-with-itself"
 }
+
 if mods["space-exploration"] then
     local spaceship_collision_layer = collision_mask_util_extended.get_named_collision_mask("moving-tile")
     local empty_space_collision_layer = collision_mask_util_extended.get_named_collision_mask("empty-space-tile")
@@ -17,8 +18,9 @@ for _, leg in pairs(data.raw["spider-leg"]) do
             "ctron-classic",
             "ctron-steam-powered",
             "ctron-solar-powered",
-            "ctron-nuclear-powered",
-        }) do
+            "ctron-nuclear-powered"
+        }
+    ) do
         if (leg.name):gmatch(constructron_name .. "-leg-%d+") then
             leg.collision_mask = constructron_collision_mask
         end

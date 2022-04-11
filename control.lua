@@ -1,12 +1,14 @@
--------------------------------------------------------------------------------
+--===========================================================================--
 --  requires/includes
--------------------------------------------------------------------------------
--- libraries and static objects
+--  libraries and static objects
+--===========================================================================--
 local technology_unlocker = require("__Constructron-2__.script.reload_technology_unlock")
 local custom_lib = require("__Constructron-2__.data.lib.custom_lib")
 --local control_lib = require("__Constructron-2__.script.lib.control_lib")
 
--- Classe based things requireing initialization
+-------------------------------------------------------------------------------
+-- Generic classes and parent classes
+-------------------------------------------------------------------------------
 ---@type Ctron
 local Ctron = require("__Constructron-2__.script.objects.Ctron")
 ---@type Surface_manager
@@ -20,6 +22,9 @@ local Spidertron_Pathfinder = require("__Constructron-2__.script.objects.Spidert
 ---@type Entity_queue
 local Entity_processing_queue = require("__Constructron-2__.script.objects.Entity-processing-queue")
 
+-------------------------------------------------------------------------------
+-- Classes used as LuaEntity Wrappers
+-------------------------------------------------------------------------------
 local EntityClass = {
     ---@type Ctron
     ["ctron-classic"] = require("__Constructron-2__.script.objects.Ctron-classic"),
@@ -35,13 +40,16 @@ local EntityClass = {
     ["service-station"] = require("__Constructron-2__.script.objects.Station")
 }
 
--------------------------------------------------------------------------------
+--===========================================================================--
 --  runtime variables & Class instanciation
--------------------------------------------------------------------------------
+--===========================================================================--
+--- Create pathfinder instance for constructron base class
 Ctron.pathfinder = Spidertron_Pathfinder()
+
 --- object model supports multiple forces, but we dont care about setting it up for now
 ---@type table<uint,string>
 local player_forces = {"player"}
+
 ---Surface managers are currently initialized as a local based on game.surfaces, TBD if that is desync safe
 ---@type table<uint,table<uint,Surface_manager>>
 local surface_managers = {}
@@ -50,10 +58,12 @@ local surface_managers = {}
 ---@type Entity_queue
 local entity_processing_queue
 
--------------------------------------------------------------------------------
+--===========================================================================--
 -- various scripting
--------------------------------------------------------------------------------
----comment
+--===========================================================================--
+
+---Surface setup and reinitialization.
+---Can be called multiple times to re-validate data structures
 local function setup_surfaces()
     log("control:setup_surfaces")
 
@@ -76,10 +86,9 @@ local function setup_surfaces()
     end
 end
 
---- Sets up a Entity-Wrapper-Instance for the given entity.
-
--- @param entity a factorio:LuaEntity object
----comment
+-------------------------------------------------------------------------------
+---Sets up a entity-wrapper-instance for the given entity.
+---Also registers the entity-wrapper with the dedicated surface-manager
 ---@param entity LuaEntity
 ---@return boolean
 local function init_entity_instance(entity)
@@ -96,7 +105,8 @@ local function init_entity_instance(entity)
     end
 end
 
----comment
+-------------------------------------------------------------------------------
+---callback for the entity-queue to process the LuaEntity after validation/delay
 ---@param entity LuaEntity
 ---@param force LuaForce
 local function assign_entity_to_surface(entity, force)
@@ -112,14 +122,14 @@ local function assign_entity_to_surface(entity, force)
     end
 end
 
--------------------------------------------------------------------------------
+--===========================================================================--
 -- event callback
--------------------------------------------------------------------------------
+--===========================================================================--
 --- Initializes required globals
 --- @see https://lua-api.factorio.com/latest/Data-Lifecycle.html
 local function on_init()
     log("control:on_init")
-    global.pause_processing = global.pause_processing or false
+    global.pause_processing = false
     Surface_manager.init_globals()
     Ctron.init_globals()
     Task.init_globals()
@@ -128,12 +138,19 @@ local function on_init()
     Spidertron_Pathfinder.init_globals()
     Surface_manager.init_globals()
     Entity_processing_queue.init_globals()
+end
 
+--- Updates Mod Setting related stuff
+--- @see https://lua-api.factorio.com/latest/Data-Lifecycle.html
+local function on_configuration_changed()
+    log("control:on_configuration_changed")
     technology_unlocker.reload_tech("spidertron")
     Ctron.update_tech_unlocks()
 end
 
----main worker unit updates
+-------------------------------------------------------------------------------
+---main worker for unit updates
+---delegated to the LuaEntity wrappers by the related surface-managers
 ---@param _ EventData
 local function on_nth_tick_300(_)
     log("control:on_nth_tick_300")
@@ -144,6 +161,7 @@ local function on_nth_tick_300(_)
     end
 end
 
+-------------------------------------------------------------------------------
 --- main worker for unit/job processing
 ---@param _ EventData
 local function on_nth_tick_60(_)
@@ -152,9 +170,11 @@ local function on_nth_tick_60(_)
         log("paused")
         return
     end
-    -- work-work
 
+    -- todo decide on meaningfull processing limits for each process step
     -- todo weave processing limit through all calls
+
+    -- work-work
     entity_processing_queue:process_chunk_queue()
     entity_processing_queue:process_entity_queue()
 
@@ -171,10 +191,13 @@ local function on_nth_tick_60(_)
     end
 end
 
---- NEEDS to be migrated to on_load() for desync safety
--- main object initialization is expected to be scheduled to run on_tick
--- on_tick will be unscheduled
--- schedules on_nth_tick_120
+-------------------------------------------------------------------------------
+--- !!!! NEEDS to be migrated to on_load() for desync safety, 
+--- this requires changing the obj:new() to not create additional globals,
+--- but rather depend on on_init !!!!
+--- main object initialization is expected to be scheduled to run on_tick
+--- on_tick will be unscheduled
+--- schedules on_nth_tick_120
 ---@param _ EventData
 local function on_tick_once(_)
     log("control:on_tick_once")
@@ -202,18 +225,20 @@ local function on_tick_once(_)
             global.service_stations.entities[unit_number] = nil
         end
     end
-    -- unschduel self and schedule main worker
+    -- unschdule self and schedule main worker
     script.on_event(defines.events.on_tick, nil)
     script.on_nth_tick(120, on_nth_tick_60)
     script.on_nth_tick(300, on_nth_tick_300)
 end
 
+-------------------------------------------------------------------------------
 --- Event handler on_player_removed_equipment
+--- assumption: our managed gear if only exists in spidertrons, whenever a known gear is removed we treat the unit as a spidertron
+--- every prototype has a fixed location where if will be placed which is csv encoded in the equipments order field
 ---@param event on_player_removed_equipment
 local function on_player_removed_equipment(event)
     log("control:on_player_removed_equipment")
-    -- assumption: our managed gear if only exists in spidertrons, whenever a known gear is removed we treat the unit as a spidertron
-    -- every prototype has a fixed location where if will be placed which is csv encoded in the equipments order field
+
     if Ctron.managed_equipment[event.equipment] then
         game.players[event.player_index].remove_item {
             name = event.equipment,
@@ -223,14 +248,17 @@ local function on_player_removed_equipment(event)
     end
 end
 
----comment
+-------------------------------------------------------------------------------
+---whenever a research is completed or reverted we just re-evaluate and update the custom gear
 ---@param _ on_research_reversed|on_research_finished
 local function on_research(_)
     log("control:on_research")
     Ctron.update_tech_unlocks()
 end
 
+-------------------------------------------------------------------------------
 --- Event handler on_built_entity
+--- perforemance optimized; everything is queued in entity_processing_queue and then deep-processed in smaller batches
 ---@param event on_built_entity
 local function on_built_entity(event)
     log("control:on_built_entity")
@@ -242,38 +270,52 @@ local function on_built_entity(event)
     end
 end
 
+-------------------------------------------------------------------------------
 --- Event handler on_post_entity_died
+--- perforemance optimized; everything is queued in entity_processing_queue and then deep-processed in smaller batches
 ---@param event on_post_entity_died
 local function on_post_entity_died(event)
     log("control:on_post_entity_died")
     entity_processing_queue:queue_entity(event.ghost, event.ghost.force, event.tick, "construction")
 end
 
+-------------------------------------------------------------------------------
 --- Event handler on_entity_marked_for_upgrade and on_entity_marked_for_deconstruction
+--- perforemance optimized; everything is queued in entity_processing_queue and then deep-processed in smaller batches
 ---@param event on_marked_for_deconstruction|on_marked_for_upgrade
---- TODO: Neutral
 local function on_entity_marked(event)
     log("control:on_entity_marked_for_*")
-    local player = game.players[event.player_index]
-    entity_processing_queue:queue_entity(event.entity, player.force, event.tick, "upgrade/deconstruction")
-end
-
---- Event handler on_entity_damaged
----@param event on_entity_damaged
-local function on_entity_damaged(event)
-    log("control:on_entity_damaged ")
-    if event.force == "player" and (event.final_health / (event.final_damage_amount + event.final_health)) < 0.90 then
-        --custom_lib.table_has_value(player_forces,event.force)
-        entity_processing_queue:queue_entity(event.entity, event.entity.force, event.tick, "repair")
+    if event.entity and event.entity.valid then
+        local force = event.entity.force
+        local player = game.players[event.player_index]
+        if player then
+            force = player.force
+        end
+        entity_processing_queue:queue_entity(event.entity, force, event.tick, "upgrade/deconstruction")
     end
 end
 
+-------------------------------------------------------------------------------
+--- Event handler on_entity_damaged
+--- perforemance optimized; everything is queued in entity_processing_queue and then deep-processed in smaller batches
+---@param event on_entity_damaged
+local function on_entity_damaged(event)
+    log("control:on_entity_damaged ")
+    if entity.valid then
+        local force = event.entity.force
+        if force and custom_lib.table_has_value(player_forces, force.name) and (event.final_health / (event.final_damage_amount + event.final_health)) < 0.90 then
+            entity_processing_queue:queue_entity(event.entity, force, event.tick, "repair")
+        end
+    end
+end
+
+-------------------------------------------------------------------------------
 --- Event handler on_entity_destroyed
----comment
+--- perforemance optimized; everything is queued in entity_processing_queue and then deep-processed in smaller batches
 ---@param event on_entity_destroyed
 ---@return any
 local function on_entity_destroyed(event)
-    log("contrl:on_entity_destroyed")
+    log("control:on_entity_destroyed")
     log(serpent.block(event))
     local data = Ctron.get_registered_unit(event.registration_number)
     if data then
@@ -286,7 +328,9 @@ local function on_entity_destroyed(event)
     end
 end
 
+-------------------------------------------------------------------------------
 --- Event handler on_entity_cloned
+--- Spidertrons are cloned in a special way, as they are a composite entity - we have to ignore the legs
 ---@param event on_entity_cloned
 local function on_entity_cloned(event)
     log("control:on_entity_cloned")
@@ -303,16 +347,22 @@ local function on_entity_cloned(event)
     end
 end
 
--------------------------------------------------------------------------------
+--===========================================================================--
 -- event registration
--------------------------------------------------------------------------------
+--===========================================================================--
 local ev = defines.events
+-------------------------------------------------------------------------------
+-- generic events
+-------------------------------------------------------------------------------
 script.on_init(on_init)
-script.on_configuration_changed(on_init)
+script.on_configuration_changed(on_configuration_changed)
+
 script.on_event({ev.on_surface_created, ev.on_surface_deleted, ev.on_force_created, ev.on_forces_merged}, setup_surfaces)
+
 script.on_event(ev.on_tick, on_tick_once) -- replaced by on_nth_tick --> fix this, we will desync
 
 script.on_event(ev.on_player_removed_equipment, on_player_removed_equipment)
+
 script.on_event({ev.on_research_finished, ev.on_research_reversed}, on_research)
 
 script.on_event(
@@ -327,6 +377,7 @@ script.on_event(
         {filter = "name", name = "ctron-rocket-powered", mode = "or"}
     }
 )
+
 script.on_event({ev.on_entity_destroyed, ev.script_raised_destroy}, on_entity_destroyed)
 
 script.on_event(
@@ -336,7 +387,9 @@ script.on_event(
     end)
 )
 
+-------------------------------------------------------------------------------
 -- entity queue events
+-------------------------------------------------------------------------------
 script.on_event(
     {
         ev.on_built_entity,
@@ -380,13 +433,14 @@ script.on_event(
     }
 )
 
--------------------------------------------------------------------------------
--- command & interfaces function
--------------------------------------------------------------------------------
+--===========================================================================--
+-- command & interface functions
+--===========================================================================--
 
---- pauses statemachine and queue processing
--- only pauses statemachine and queue processing, not initial event capture
--- on unpause every ctron might have it's current task run into timeout
+-------------------------------------------------------------------------------
+---pauses statemachine and queue processing
+---only pauses statemachine and queue processing, the initial event capture is not paused
+---on unpause every ctron might have it's current task run into timeout
 ---@return boolean
 local function toggle_pause()
     log("control:toggle_pause")
@@ -395,7 +449,9 @@ local function toggle_pause()
     return global.pause_processing
 end
 
+-------------------------------------------------------------------------------
 --- Resets the queues, And requeues all chunks on all surfaces to be scanned
+--- neutral deconstructions for nond efault force  might have issues being requeued
 local function rescan_all_surfaces()
     log("control:rescan_all_surfaces")
     global.chunk_processing_queue = {}
@@ -409,7 +465,9 @@ local function rescan_all_surfaces()
     end
 end
 
+-------------------------------------------------------------------------------
 --- full hardreset of everything
+--- probably not desync safe.
 local function reset()
     log("control:reset")
     game.print("Constructron: !!! hard reset !!!", {r = 1, g = 0.2, b = 0.2})
@@ -431,7 +489,8 @@ local function reset()
     global.pause_processing = false
 end
 
----comment
+-------------------------------------------------------------------------------
+---get stats from all surface managers and group them
 ---@return table
 local function get_stats()
     log("control:get_stats")
@@ -445,15 +504,20 @@ local function get_stats()
     return stats
 end
 
--------------------------------------------------------------------------------
+--===========================================================================--
 -- commands & interfaces
--------------------------------------------------------------------------------
+--===========================================================================--
+
 local ctron_commands = {
     rescan = rescan_all_surfaces,
     reset = reset,
     pause = toggle_pause,
     stats = get_stats
 }
+
+-------------------------------------------------------------------------------
+-- commands
+-------------------------------------------------------------------------------
 commands.add_command(
     "ctron",
     "/ctron rescan|reset|pause",
@@ -465,5 +529,8 @@ commands.add_command(
         end
     end
 )
---- Game interfaces
+
+-------------------------------------------------------------------------------
+--- game interfaces
+-------------------------------------------------------------------------------
 remote.add_interface("ctron_interface", ctron_commands)
