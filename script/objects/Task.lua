@@ -69,14 +69,16 @@ function Task:get_position()
         local c = 0
         for _, entity in pairs(self.entities) do
             if entity and entity.valid then
-                position.x = entity.position.x
-                position.y = entity.position.y
+                position.x = position.x + entity.position.x
+                position.y = position.y + entity.position.y
+                self:log("entity " .. serpent.block(entity.position))
                 c = c + 1
             end
         end
         if c > 0 then
             position.x = math.floor(position.x / c * 1000 + 0.5) / 1000
             position.y = math.floor(position.y / c * 1000 + 0.5) / 1000
+            self:log(serpent.block(position))
             return position
         end
     end
@@ -133,15 +135,22 @@ function Task:update()
     end
     local item_count = custom_lib.table_length(items)
     if item_count == 0 then
+        self:log("completed!")
         self:mark_completed()
     end
     self.items = items
 end
 
+---comment
+---@param entity LuaEntity
+---@return table
 function Task:get_required_items(entity)
     self:log()
     local function item_to_place_this(items_to_place_this)
         self:log()
+        if not items_to_place_this then
+            return
+        end
         for _, item in ipairs(items_to_place_this) do
             if not game.item_prototypes[item.name].has_flag("hidden") then
                 return item.name
@@ -158,16 +167,24 @@ function Task:get_required_items(entity)
             end
         elseif entity.to_be_deconstructed() then
             local item_name = item_to_place_this(entity.prototype.items_to_place_this)
-            if not item_name and entity.prototype.minable then
-                item_name = entity.prototype.minable.result
-            end
             if item_name then
                 items[item_name] = (items[item_name] or 0) - 1
+            elseif entity.prototype.mineable_properties and entity.prototype.mineable_properties.minable then
+                for _, product in ipairs(entity.prototype.mineable_properties.products) do
+                    if product.type == "item" then
+                        item_name = product.name
+                        items[item_name] = (items[item_name] or 0) - (product.amount or product.amount_max)
+                    end
+                end
             end
         elseif entity.to_be_upgraded() then
             local item_name = item_to_place_this(entity.get_upgrade_target().items_to_place_this)
             if item_name then
                 items[item_name] = (items[item_name] or 0) + 1
+            end
+            item_name = item_to_place_this(entity.prototype.items_to_place_this)
+            if item_name then
+                items[item_name] = (items[item_name] or 0) - 1
             end
         elseif entity.type == "cliff" then
             items["cliff-explosives"] = (items["cliff-explosives"] or 0) + 1

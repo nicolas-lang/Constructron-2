@@ -1,7 +1,10 @@
 local Debug = require("__Constructron-2__.script.objects.Debug")
 local custom_lib = require("__Constructron-2__.data.lib.custom_lib")
+local Task_construction = require("__Constructron-2__.script.objects.Task-construction")
+local Task_delivery = require("__Constructron-2__.script.objects.Task-delivery")
 
 ---@class Job : Debug
+---@field status table<string,uint>
 local Job = {
     class_name = "Job",
     area = nil,
@@ -105,25 +108,25 @@ function Job:update()
     for key, task in pairs(self.tasks) do
         task:update()
         --> remove tasks with no remaining entities to build
-        if task:get_completed() == true then
-            task:destroy()
-            self.tasks[key] = nil
-        end
+        -- NO, beacuse we want to validate and re-queue them later...
+        -- TODO: check tasks's completed flag for next etc.
+        --if task:get_completed() == true then
+        --task:destroy()
+        --self.tasks[key] = nil
+        --end
     end
 end
 
-function Job:destroy(task_callback)
+---comment
+function Job:destroy()
     self:log()
     --Check all entities
     self:update()
-    -- Re-Queue them if required
-    if task_callback then
-        for _, task in pairs(self.tasks) do
-            if task:get_completed() == false then
-                task_callback(task)
-            end
-        end
+    for _, task in pairs(self.tasks) do
+        task:destroy()
     end
+    self.tasks = {}
+
     if self.constructron and self.constructron:is_valid() then
         self.constructron:assign_job(nil)
     end
@@ -201,6 +204,7 @@ function Job:get_position()
         if c > 0 then
             position.x = math.floor(position.x / c * 1000 + 0.5) / 1000
             position.y = math.floor(position.y / c * 1000 + 0.5) / 1000
+            self:log(serpent.block(position))
             return position
         end
     end

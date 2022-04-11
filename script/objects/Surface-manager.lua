@@ -13,8 +13,8 @@ local Ctron = require("__Constructron-2__.script.objects.Ctron")
 ---@field force LuaForce
 ---@field force_index uint
 ---@field chunks table
----@field tasks table
----@field jobs table
+---@field tasks table<uint,Task>
+---@field jobs table<uint,Job>
 ---@field constructrons table<uint,Ctron>
 ---@field stations table<uint,Station>
 ---@field job_actions table
@@ -217,16 +217,17 @@ function Surface_manager:get_station(items, target_position)
             -- #1 based on numer of avaliable items
             local provided_items = station:get_inventory(items)
             self:log(station.id .. ":" .. serpent.block(provided_items))
-            score[station.id] = score[station.id] + math.floor(custom_lib.table_length(provided_items) / custom_lib.table_length(items) * 10) / 10
+            score[station.id] = score[station.id] + custom_lib.table_length(provided_items) / custom_lib.table_length(items)
             if custom_lib.table_length(provided_items) then
                 can_service = true
             end
         end
         -- #2 on distance to jobsite or constructron
-        score[station.id] = score[station.id] + (0.3 - math.floor(station:distance_to(target_position) / max_distance * 10) / 30)
+        score[station.id] = score[station.id] + (0.3 - 0.3 * station:distance_to(target_position) / max_distance)
         -- #3 with a slight variance
-        score[station.id] = score[station.id] + math.floor(math.random() * 10) / 50
-        log (score[station.id])
+        score[station.id] = score[station.id] + math.random() / 10
+        score[station.id] = math.floor(score[station.id] * 20) / 20
+        log(score[station.id])
     end
 
     if can_service == false then
@@ -247,10 +248,9 @@ function Surface_manager:get_station(items, target_position)
     local _, selected_station = next(station_score)
     if selected_station then
         local selected = self.stations[selected_station.key]
-        self:log("selected station " .. serpent.block(selected_station)..";".. serpent.block(selected))
+        self:log("selected station " .. serpent.block(selected_station) .. ";" .. serpent.block(selected))
         self:log("selected: " .. selected.id)
         return selected
-
     end
 end
 
@@ -308,7 +308,7 @@ end
 function Surface_manager:add_task(task)
     self:log()
     self:log("registered task: " .. serpent.block(task) .. "(" .. task.class_name .. ")")
-    self.tasks[#(self.tasks)] = task
+    self.tasks[#(self.tasks) + 1] = task
 end
 
 ---comment
@@ -368,19 +368,14 @@ function Surface_manager:run_jobs()
         local state_based_action = self.job_actions[job:get_status()]
         local new_state = state_based_action:handleStateTransition(job)
         log("job.new_status: " .. (new_state or "-"))
-        if new_state then
+
+        if job:get_status_id() == Job.status.completed then
+            job:destroy()
+            self.jobs[key] = nil
+        elseif new_state then
             job:set_status(new_state)
         end
         game.print(job:get_status())
-        if job:get_status_id() == Job.status.completed then
-            job:destroy(
-                function(task)
-                    -- callback to re-register unfinished tasks with self
-                    self:add_task(task)
-                end
-            )
-            self.jobs[key] = nil
-        end
     end
 end
 

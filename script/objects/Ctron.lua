@@ -683,7 +683,13 @@ function Ctron:set_autopilot(path)
             self.entity.add_autopilot_destination(waypoint.position)
             self.target = waypoint.position
         end
-        self:set_status(self.status.traveling)
+        if self.target then
+            --self:clear_passengers()
+            self:attach_text(self.entity, "target: " .. math.floor(self.target.x * 10) / 10 .. " / " .. math.floor(self.target.y * 10) / 10, self.debug_definition.lines.dynamic, 2)
+            self:set_status(self.status.traveling)
+        else
+            self:set_status(self.status.idle)
+        end
     end
 end
 
@@ -704,6 +710,19 @@ function Ctron:update_slot_filters()
             end
             offset = offset + 1
         end
+    end
+end
+
+---comment
+function Ctron:clear_passengers()
+    if self.entity.driver and self.entity.driver.valid then
+        self.entity.driver.destroy()
+        self.entity.driver = nil
+    end
+
+    if self.entity.passenger and self.entity.passenger.valid then
+        self.entity.passenger.destroy()
+        self.entity.passenger = nil
     end
 end
 

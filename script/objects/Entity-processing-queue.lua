@@ -28,7 +28,7 @@ function Entity_queue:new(callback)
     self.entity_processing_callback = function(_, entity, force)
         log("self:callback")
         self:log("callback" .. serpent.block(entity) .. serpent.block(force))
-        callback(entity,force)
+        callback(entity, force)
     end
 end
 
@@ -57,13 +57,13 @@ function Entity_queue:process_entity_queue()
             local entities = global.entity_processing_queue[tick_index]
             local entity_index = next(entities)
             while entity_index and c < self.max_entities_per_call do
-                local entity = entities[entity_index]
-                if entity and entity.valid then
+                local obj = entities[entity_index]
+                if obj and obj.entity and obj.entity.valid then
                     -- process it
                     log("processing entity:")
-                    log("entity.type " .. (entity.type or "nil"))
-                    log("entity.name " .. (entity.name or "nil"))
-                    self:entity_processing_callback(entity, entity.force)
+                    log("entity.type " .. (obj.entity.type or "nil"))
+                    log("entity.name " .. (obj.entity.name or "nil"))
+                    self:entity_processing_callback(obj.entity, obj.force)
                     c = c + 1
                 end
                 entities[entity_index] = nil
@@ -116,7 +116,11 @@ function Entity_queue:process_chunk_queue()
                 end
                 for object in objects do
                     local max_index = #(global.entity_processing_queue[game.tick])
-                    global.entity_processing_queue[game.tick][max_index + 1] = object
+                    -- TODO: neutral deconstructions have no force, we probably need to cache from initial decon event....
+                    -- as a workaround we use the player for now as multi-force compatitbilty is not planned for the initial version
+                    local force = object.force or game.players[1].force
+                    global.entity_processing_queue[game.tick][max_index + 1] = {entity = object, force = force}
+
                 end
             end
         end
@@ -134,7 +138,7 @@ end
 ---@param tick int
 ---@param build_type string
 ---@return boolean
-function Entity_queue:queue_entity(entity, force,  tick, build_type)
+function Entity_queue:queue_entity(entity, force, tick, build_type)
     self:log()
     if entity and entity.valid then
         tick = tick or game.tick
@@ -147,7 +151,7 @@ function Entity_queue:queue_entity(entity, force,  tick, build_type)
                 global.entity_processing_queue[tick] = {}
             end
             local max_index = #(global.entity_processing_queue[tick])
-            global.entity_processing_queue[tick][max_index + 1] = entity
+            global.entity_processing_queue[tick][max_index + 1] = {entity = entity, force = force}
             log("registered entity for processing #" .. max_index + 1)
             return true
         end
