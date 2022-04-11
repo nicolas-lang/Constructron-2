@@ -1,3 +1,4 @@
+local util = require("util")
 local speed_sticker = {
     type = "sticker",
     name = "speed-sticker",

@@ -192,7 +192,7 @@ local function on_nth_tick_60(_)
 end
 
 -------------------------------------------------------------------------------
---- !!!! NEEDS to be migrated to on_load() for desync safety, 
+--- !!!! NEEDS to be migrated to on_load() for desync safety,
 --- this requires changing the obj:new() to not create additional globals,
 --- but rather depend on on_init !!!!
 --- main object initialization is expected to be scheduled to run on_tick
@@ -301,7 +301,7 @@ end
 ---@param event on_entity_damaged
 local function on_entity_damaged(event)
     log("control:on_entity_damaged ")
-    if entity.valid then
+    if event.entity.valid then
         local force = event.entity.force
         if force and custom_lib.table_has_value(player_forces, force.name) and (event.final_health / (event.final_damage_amount + event.final_health)) < 0.90 then
             entity_processing_queue:queue_entity(event.entity, force, event.tick, "repair")
