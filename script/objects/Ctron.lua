@@ -7,6 +7,7 @@ local custom_lib = require("__Constructron-2__.data.lib.custom_lib")
 ---@field entity LuaEntity
 ---@field status table<string, number>
 ---@field pathfinder Spidertron_Pathfinder
+---@field speed_sticker LuaEntity
 local Ctron = {
     class_name = "Ctron",
     -- <base game spidertron entity unit_number used as PK for everything>
@@ -22,7 +23,8 @@ local Ctron = {
     managed_equipment_cols = 0,
     last_status_update_tick = 0,
     movement_research = 1,
-    inventory_filters = {}
+    inventory_filters = {},
+    speed_sticker = nil
 }
 Ctron.__index = Ctron
 
@@ -94,7 +96,7 @@ function Ctron.init_managed_gear()
     log("managed_equipment" .. serpent.block(Ctron.managed_equipment))
 end
 
----comment
+---NOT IMPLETENTED
 function Ctron.update_tech_unlocks()
     --just update tech unlocks for all forces
 end
@@ -177,6 +179,7 @@ function Ctron:tick_update()
                     --ToDo: create slow sticker prototype in data stage
                     --ToDo: attach 75% slow sticker (1.5s)
                     -- see Companion drones for example code
+                    self:set_speed_sticker()
                     log("sticker")
                 end
             else
@@ -711,6 +714,22 @@ function Ctron:update_slot_filters()
             offset = offset + 1
         end
     end
+end
+
+function Ctron:set_speed_sticker()
+    if self.speed_sticker and self.speed_sticker.valid then
+        return
+    end
+    self.speed_sticker =
+        self.entity.surface.create_entity(
+        {
+            name = "speed-sticker",
+            target = self.entity,
+            force = self.entity.force,
+            position = self.entity.position
+        }
+    )
+    self.speed_sticker.active = true
 end
 
 ---comment

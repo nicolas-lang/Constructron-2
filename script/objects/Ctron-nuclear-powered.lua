@@ -68,6 +68,8 @@ end
 
 function Ctron_nuclear_powered:set_request_items(request_items, item_whitelist)
     request_items = request_items or {}
+    item_whitelist = item_whitelist or {}
+    item_whitelist[self.construction_robots.type] = true
     request_items[self.fuel] = (request_items[self.fuel] or 0) + control_lib.get_stack_size(self.fuel) * #(self.entity.burner.inventory)
     --request_items["construction-robot"] = (request_items["construction-robot"] or 0) + self.robots
     Ctron.set_request_items(self, request_items, item_whitelist)

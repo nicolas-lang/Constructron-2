@@ -29,6 +29,7 @@ setmetatable(
 
 -- Debug Constructor
 function Debug:new(scope) -- luacheck: ignore
+    --todo: globalize to make it MP safe
     self.debug_messages = {}
 end
 
@@ -52,32 +53,34 @@ end
 
 function Debug:attach_text(entity, message, line, ttl)
     if self and self.debug then
-        for k, msg in ipairs(self.debug_messages) do
-            if msg.tick + msg.ttl < game.tick then
-                self.debug_messages[k] = nil
-            end
-        end
         if entity and entity.valid then
-            line = line or 0
-            ttl = (ttl or 1) * 60
-            local color = {r = 255, g = 255, b = 255, a = 255}
-            if line == self.debug_definition.lines.dynamic then
-                local index = custom_lib.table_length(self.debug_messages) + 1
-                self.debug_messages[index] = {tick = game.tick, ttl = ttl}
-                line = line + index - 1
-                color = {r = 150, g = 150, b = 150, a = 255}
+            for k, msg in pairs(self.debug_messages) do
+                if msg.tick + msg.ttl < game.tick then
+                    self.debug_messages[k] = nil
+                end
             end
+            if entity and entity.valid then
+                line = line or 0
+                ttl = (ttl or 1) * 60
+                local color = {r = 255, g = 255, b = 255, a = 255}
+                if line == self.debug_definition.lines.dynamic then
+                    local index = custom_lib.table_length(self.debug_messages) + 1
+                    self.debug_messages[index] = {tick = game.tick, ttl = ttl}
+                    line = line + index - 1
+                    color = {r = 150, g = 150, b = 150, a = 255}
+                end
 
-            rendering.draw_text {
-                text = message,
-                target = entity,
-                filled = true,
-                surface = entity.surface,
-                time_to_live = ttl,
-                target_offset = util.by_pixel(0, line * 16),
-                alignment = "center",
-                color = color
-            }
+                rendering.draw_text {
+                    text = message,
+                    target = entity,
+                    filled = true,
+                    surface = entity.surface,
+                    time_to_live = ttl,
+                    target_offset = util.by_pixel(0, line * 16),
+                    alignment = "center",
+                    color = color
+                }
+            end
         end
     end
 end

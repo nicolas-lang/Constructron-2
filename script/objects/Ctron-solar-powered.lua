@@ -84,13 +84,14 @@ function Ctron_solar_powered:status_update()
 
 end
 
---[[
+
 function Ctron_solar_powered:set_request_items(request_items, item_whitelist)
     request_items = request_items or {}
-    --request_items["construction-robot"] = (request_items["construction-robot"] or 0) + self.robots
+    item_whitelist = item_whitelist or {}
+    item_whitelist[self.construction_robots.type] = true
     Ctron.set_request_items(self, request_items, item_whitelist)
 end
-]]
+
 
 function Ctron_solar_powered:enable_construction()
     self:log()
