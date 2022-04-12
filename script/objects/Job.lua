@@ -86,6 +86,7 @@ function Job:set_status(status)
     if self.constructron then
         self:attach_text(self.constructron.entity, text_status, self.debug_definition.lines.line_1, 2)
     end
+    self:log(text_status)
 end
 
 function Job:get_status()
@@ -143,12 +144,22 @@ function Job:assign_constructron(constructron)
     if constructron:is_valid() then
         self.constructron = constructron
         constructron:assign_job(self.id)
+        self:update_task_positions()
     end
 end
-
+function Job:update_task_positions()
+    if self.constructron and self.constructron:is_valid() then
+        for _, task in pairs(self.tasks) do
+            task:update_positions(self.constructron:get_construction_radius() * 2)
+        end
+    end
+end
 function Job:get_current_task()
     for _, task in ipairs(self.tasks) do --ipairs to ensure ordered processing
         if task:get_completed() ~= true then
+            if self.constructron and self.constructron:is_valid() then
+                task:update_positions(self.constructron:get_construction_radius() * 2)
+            end
             return task
         end
     end

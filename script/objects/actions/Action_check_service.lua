@@ -39,7 +39,7 @@ function Action_check_service:handleStateTransition(job)
     if constructron_position and not target_position then
         target_position = constructron_position.position
     end
-    local station = self.surfacemanager:get_station(required_items, target_position)
+    local station = self.surfacemanager:get_station(required_items, target_position, constructron_position.position)
     if station then
         job:assign_station(station)
         return job.status.get_service

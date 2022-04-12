@@ -8,12 +8,17 @@ local custom_lib = require("__Constructron-2__.data.lib.custom_lib")
 ---@field status table<string, number>
 ---@field pathfinder Spidertron_Pathfinder
 ---@field speed_sticker LuaEntity
+---@field fuel string
+---@field construction_enabled boolean
+---@field target MapPosition
+---@field job_id uint
+---@field managed_equipment table <string,table>
 local Ctron = {
     class_name = "Ctron",
     -- <base game spidertron entity unit_number used as PK for everything>
     unit_number = nil,
     -- <base game spidertron entity>
-    entity = nil,
+    --entity = nil,
     name = nil,
     force = nil,
     registration_id = nil,
@@ -96,9 +101,24 @@ function Ctron.init_managed_gear()
     log("managed_equipment" .. serpent.block(Ctron.managed_equipment))
 end
 
----NOT IMPLETENTED
+---ToDo change to be entity based instead of prototype based
 function Ctron.update_tech_unlocks()
-    --just update tech unlocks for all forces
+    log("Ctron.update_tech_unlocks")
+    local tech_name = "ctron%-exoskeleton%-equipment%-(%d+)"
+    local max_tier = 1
+    --if self:is_valid() then
+    --local force = self.entity.force
+    local force = game.forces["player"]
+    for _, tech in pairs(force.technologies) do
+        if tech.researched then
+            for tier in (tech.name):gmatch(tech_name) do
+                max_tier = math.max(max_tier, tonumber(tier))
+            end
+        end
+    end
+    log("max_tier: " .. max_tier)
+    Ctron.movement_research = max_tier
+    --end
 end
 
 ---Equippment Grid Fixer
@@ -112,10 +132,12 @@ function Ctron.restore_gear(equipment_grid, equipment_name)
     if equipment_grid then
         local grid_contents = equipment_grid.get_contents()
         if grid_contents and not grid_contents[equipment_name] and Ctron.managed_equipment[equipment_name] then
-            equipment_grid.put {
-                name = equipment_name,
-                position = Ctron.managed_equipment[equipment_name]
-            }
+            equipment_grid.put(
+                {
+                    name = equipment_name,
+                    position = Ctron.managed_equipment[equipment_name]
+                }
+            )
         end
     end
 end
@@ -179,7 +201,11 @@ function Ctron:tick_update()
                     --ToDo: create slow sticker prototype in data stage
                     --ToDo: attach 75% slow sticker (1.5s)
                     -- see Companion drones for example code
-                    self:set_speed_sticker()
+                    if self:is_moving() then
+                        self:set_speed_sticker()
+                    else
+                        self:set_speed_sticker(true)
+                    end
                     log("sticker")
                 end
             else
@@ -245,10 +271,11 @@ function Ctron:status_update()
 end
 
 ---comment
+---TODO: Change to be instance not prototype based
 ---@param name string
 ---@return string
 function Ctron:parse_gear_name(name)
-    name = string.gsub(name, "{movement_research}", tostring(self.movement_research))
+    name = string.gsub(name, "{movement_research}", tostring(Ctron.movement_research))
     return name
 end
 
@@ -489,6 +516,12 @@ function Ctron:get_logistic_status()
 end
 
 ---comment
+---@return float
+function Ctron:get_construction_radius()
+    return 4
+end
+
+---comment
 ---@param request_items table
 ---@param item_whitelist table
 ---@return boolean
@@ -716,19 +749,23 @@ function Ctron:update_slot_filters()
     end
 end
 
-function Ctron:set_speed_sticker()
+---comment
+function Ctron:set_speed_sticker(extended)
     if self.speed_sticker and self.speed_sticker.valid then
         return
     end
     self.speed_sticker =
         self.entity.surface.create_entity(
         {
-            name = "speed-sticker",
+            name = "ctron-speed-sticker",
             target = self.entity,
             force = self.entity.force,
             position = self.entity.position
         }
     )
+    if extended then
+        self.speed_sticker.time_to_live = 90
+    end
     self.speed_sticker.active = true
 end
 

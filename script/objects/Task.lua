@@ -3,10 +3,13 @@ local control_lib = require("__Constructron-2__.script.lib.control_lib")
 local Debug = require("__Constructron-2__.script.objects.Debug")
 
 ---@class Task : Debug
+---@field positions table<uint,MapPosition>
+---@field current_position uint
+---@field entities table <uint,LuaEntity>
+---@field items table<string,int>
+---@field completed boolean
 local Task = {
-    class_name = "Task",
-    area = nil,
-    position = nil
+    class_name = "Task"
 }
 Task.__index = Task
 
@@ -53,21 +56,25 @@ function Task:add_entity(entity)
 end
 
 function Task:get_next_position()
-    if self.current_position == 1 then
-        return self:get_position()
+    self:log()
+    if self.current_position <= custom_lib.table_length(self.positions) then
+        return self.positions[self.current_position]
     end
 end
 
 function Task:next_position()
     self.current_position = self.current_position + 1
 end
-
 function Task:get_position()
+    self:get_median_position(self.entities)
+end
+
+function Task:get_median_position(entities)
     self:log()
     local position = {x = 0, y = 0}
-    if next(self.entities) then
+    if next(entities) then
         local c = 0
-        for _, entity in pairs(self.entities) do
+        for _, entity in pairs(entities) do
             if entity and entity.valid then
                 position.x = position.x + entity.position.x
                 position.y = position.y + entity.position.y
@@ -82,6 +89,52 @@ function Task:get_position()
             return position
         end
     end
+end
+
+---comment
+---@param split float
+function Task:update_positions(split)
+    self:log()
+    local steps = math.ceil(32 / split)
+    self:log(steps)
+    local grid_positions = {}
+    for x = 1, steps do
+        for y = 1, steps do
+            grid_positions[x] = {}
+            grid_positions[x][y] = {}
+        end
+    end
+
+    local chunk_base
+    for _, e in pairs(self.entities) do
+        if e.valid then
+            chunk_base = chunk_base or {x = math.floor(e.position.x / 32)*32, y = math.floor(e.position.y / 32)*32}
+            local index = {x = math.ceil(math.abs((e.position.x - chunk_base.x) / split)), y = math.ceil(math.abs((e.position.y - chunk_base.y) / split))}
+            self:log("entity-index" .. serpent.block(index))
+            grid_positions[index.x] = grid_positions[index.x] or {}
+            grid_positions[index.x][index.y] = grid_positions[index.x][index.y] or {}
+            local t = grid_positions[index.x][index.y]
+            self:log("entity-position" .. serpent.block(e.position))
+            t[#t + 1] = e
+            self:log("grid_positions[x][y]" .. serpent.block(grid_positions[index.x][index.y]))
+        end
+    end
+    self:log("entity-positions" .. serpent.block(grid_positions))
+    local positions = {}
+    for x = 1, steps do
+        for y = 1, steps do
+            if grid_positions[x] and grid_positions[x][y] and custom_lib.table_length(grid_positions[x][y]) > 0 then
+                local median_position = self:get_median_position(grid_positions[x][y])
+                self:log("grid_positions[x][y]" .. serpent.block(grid_positions[x][y]))
+                self:log("median_position" .. serpent.block(median_position))
+                positions[#positions + 1] = median_position
+            end
+        end
+    end
+    self:log("task-positions" .. serpent.block(positions))
+    self:log(serpent.block(positions))
+    self.positions = positions
+    self.current_position = 1
 end
 
 function Task:get_items()
@@ -126,11 +179,15 @@ end
 function Task:update()
     self:log()
     local items = {}
-    for _, entity in pairs(self.entities) do
-        local req_items = self:get_required_items(entity) or {}
-        for k, v in pairs(req_items) do
-            self:log(k .. " " .. v)
-            items[k] = (items[k] or 0) + v
+    for key, entity in pairs(self.entities) do
+        local req_items = self:get_required_items(entity)
+        if req_items then
+            for k, v in pairs(req_items) do
+                self:log(k .. " " .. v)
+                items[k] = (items[k] or 0) + v
+            end
+        else
+            self.entities[key] = nil
         end
     end
     local item_count = custom_lib.table_length(items)

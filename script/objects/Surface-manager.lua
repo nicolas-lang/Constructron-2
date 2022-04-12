@@ -196,7 +196,7 @@ end
 ---@param items table
 ---@param target_position MapPosition
 ---@return Station
-function Surface_manager:get_station(items, target_position)
+function Surface_manager:get_station(items, target_position, constructron_position)
     self:log()
     local score = {}
     local max_distance = 0
@@ -206,30 +206,39 @@ function Surface_manager:get_station(items, target_position)
 
     for _, station in pairs(self.stations) do
         if station and station:is_valid() then
-            max_distance = math.max(station:distance_to(target_position) or 0, max_distance)
+            local distance = station:distance_to(target_position) + station:distance_to(constructron_position)
+            max_distance = math.max(distance, max_distance)
         end
+    end
+    if not max_distance then
+        return
     end
     -- we can service if we don't need items
     local can_service = (custom_lib.table_length(items) == 0)
     for _, station in pairs(self.stations) do
-        score[station.id] = 0
-        if custom_lib.table_length(items) > 0 then
-            -- #1 based on numer of avaliable items
-            local provided_items = station:get_inventory(items)
-            self:log(station.id .. ":" .. serpent.block(provided_items))
-            score[station.id] = score[station.id] + custom_lib.table_length(provided_items) / custom_lib.table_length(items)
-            if custom_lib.table_length(provided_items) then
-                can_service = true
+        if station and station:is_valid() then
+            score[station.id] = 0
+            if custom_lib.table_length(items) > 0 then
+                -- #1 based on numer of avaliable items
+                local provided_items = station:get_inventory(items)
+                self:log(station.id .. ":" .. serpent.block(provided_items))
+                score[station.id] = score[station.id] + custom_lib.table_length(provided_items) / custom_lib.table_length(items)
+                if custom_lib.table_length(provided_items) then
+                    can_service = true
+                end
             end
+            if score[station.id] > 0 then
+                -- #2 with a slight variance
+                score[station.id] = score[station.id] + math.random() / 10
+                score[station.id] = math.floor(score[station.id] * 20) / 20
+            end
+            -- #3 on distance to jobsite or constructron
+            local distance = station:distance_to(target_position) + station:distance_to(constructron_position)
+            score[station.id] = score[station.id] + (0.3 - 0.3 * distance / max_distance)
+            
+            log(score[station.id])
         end
-        -- #2 on distance to jobsite or constructron
-        score[station.id] = score[station.id] + (0.3 - 0.3 * station:distance_to(target_position) / max_distance)
-        -- #3 with a slight variance
-        score[station.id] = score[station.id] + math.random() / 10
-        score[station.id] = math.floor(score[station.id] * 20) / 20
-        log(score[station.id])
     end
-
     if can_service == false then
         return
     end
