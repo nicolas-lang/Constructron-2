@@ -107,13 +107,14 @@ end
 function Debug:draw_circle(surface, position, color, text, ttl)
     if self and self.debug then
         if position then
+            ttl = (ttl or 15) * 60
             local message = "Circle"
             rendering.draw_circle {
                 target = position,
                 radius = 0.5,
                 filled = true,
                 surface = surface,
-                time_to_live = 900,
+                time_to_live = ttl,
                 color = color
             }
             if text then
@@ -123,7 +124,7 @@ function Debug:draw_circle(surface, position, color, text, ttl)
                     target = {position.x, position.y - 0.25},
                     filled = true,
                     surface = surface,
-                    time_to_live = 900,
+                    time_to_live = ttl,
                     alignment = "center",
                     color = {
                         r = 255,
@@ -145,6 +146,7 @@ end
 ---@param color Color
 function Debug:draw_rectangle (surface, minimum, maximum, color, ttl)
     if self and self.debug then
+        ttl = (ttl or 10) * 60
         local message = "rectangle"
         local inner_color = {
             r = color.r,
@@ -158,7 +160,7 @@ function Debug:draw_rectangle (surface, minimum, maximum, color, ttl)
             right_bottom = maximum,
             filled = true,
             surface = surface,
-            time_to_live = 600,
+            time_to_live = ttl,
             color = inner_color
         }
 
@@ -168,7 +170,7 @@ function Debug:draw_rectangle (surface, minimum, maximum, color, ttl)
             width = 3,
             filled = false,
             surface = surface,
-            time_to_live = 600,
+            time_to_live = ttl,
             color = color
         }
 
