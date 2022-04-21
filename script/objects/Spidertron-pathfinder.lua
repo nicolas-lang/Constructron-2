@@ -5,6 +5,14 @@ local cust_lib = require("__Constructron-2__.data.lib.custom_lib")
 local collision_mask_util_extended = require("__Constructron-2__.script.lib.collision-mask-util-control")
 
 ---@class Spidertron_Pathfinder
+---@field clean_linear_path_enabled boolean
+---@field clean_path_steps_enabled boolean
+---@field clean_path_steps_distance uint
+---@field non_colliding_position_accuracy double
+---@field radius double
+---@field path_resolution_modifier double [-8 <= n <= +8]
+---@field initial_bounding_box BoundingBox
+---@field cache_enabled boolean
 local Spidertron_Pathfinder = {
     class_name = "Spidertron_Pathfinder",
     clean_linear_path_enabled = false,
@@ -14,7 +22,8 @@ local Spidertron_Pathfinder = {
     non_colliding_position_accuracy = 0.5,
     radius = 1,
     path_resolution_modifier = -2,
-    initial_bounding_box = {{-5, -5}, {5, 5}}
+    initial_bounding_box = {{-5, -5}, {5, 5}},
+    cache_enabled = true
 }
 
 Spidertron_Pathfinder.__index = Spidertron_Pathfinder
@@ -30,7 +39,8 @@ setmetatable(
     }
 )
 
--- Spidertron_Pathfinder Constructor
+---Constructor
+---@param params table<string,any>
 function Spidertron_Pathfinder:new(params)
     for key, value in pairs(params or {}) do
         self[key] = value
@@ -38,10 +48,12 @@ function Spidertron_Pathfinder:new(params)
     self.path_resolution_modifier = math.min(math.max(self.path_resolution_modifier, -8), 8)
 end
 
+-- Generic Type based initialization
 Spidertron_Pathfinder.init_globals = function()
     global.pathfinder_requests = global.pathfinder_requests or {}
 end
 
+---Static function to purge timed out requests from globals
 Spidertron_Pathfinder.check_pathfinder_requests_timeout = function()
     for key, request in pairs(global.pathfinder_requests) do
         if ((game.tick - request.request_tick) > 60 * 60) then -- one minute
@@ -50,6 +62,9 @@ Spidertron_Pathfinder.check_pathfinder_requests_timeout = function()
     end
 end
 
+---Static helper to clean points on a straight path
+---@param path table<uint,PathfinderWaypoint>
+---@return table<uint,PathfinderWaypoint>
 function Spidertron_Pathfinder.clean_linear_path(path)
     -- removes points on the same line except the start and the end.
     local new_path = {}
@@ -67,6 +82,10 @@ function Spidertron_Pathfinder.clean_linear_path(path)
     return new_path
 end
 
+---Static helper to clean points based on a min distance between eachother
+---@param path table<uint,PathfinderWaypoint>
+---@param min_distance double
+---@return table<uint,PathfinderWaypoint>
 function Spidertron_Pathfinder.clean_path_steps(path, min_distance)
     if #path == 1 then
         return path
@@ -92,6 +111,11 @@ function Spidertron_Pathfinder.clean_path_steps(path, min_distance)
     --log("new_path" .. serpent.block(new_path))
     return new_path
 end
+
+---find_non_colliding_position near position on surface
+---@param surface LuaSurface
+---@param position MapPosition
+---@return MapPosition
 function Spidertron_Pathfinder:find_non_colliding_position(surface, position)
     for _, param in pairs(
         {
@@ -110,11 +134,16 @@ function Spidertron_Pathfinder:find_non_colliding_position(surface, position)
     end
 end
 
+---Get a path for <unit> to <goal>
+---@param unit LuaEntity
+---@param goal MapPosition
 function Spidertron_Pathfinder:request_path(unit, goal)
     local request_params = {unit = unit, goal = goal}
     self:request_path2(request_params)
 end
 
+---Get a path based on specific parameters
+---@param request_params table
 function Spidertron_Pathfinder:request_path2(request_params)
     log("request_path2")
     local pathing_collision_mask = {"water-tile", "consider-tile-transitions", "colliding-with-tiles-only", "not-colliding-with-itself"}
@@ -127,6 +156,7 @@ function Spidertron_Pathfinder:request_path2(request_params)
     request_params = request_params or {}
     local unit = request_params.unit -- object-type: CTron
     if unit then
+        log("request_path2.unit " .. tostring(unit.id))
         unit:set_autopilot({})
         local position = unit:get_position()
         local request = {
@@ -141,7 +171,8 @@ function Spidertron_Pathfinder:request_path2(request_params)
             radius = self.radius,
             path_resolution_modifier = self.path_resolution_modifier,
             pathfinding_flags = {
-                cache = true,
+                --prefer_straight_paths = false
+                cache = self.cache_enabled,
                 low_priority = true
             },
             retry = 0, -- not used by the factorio-pathfinder
@@ -157,6 +188,8 @@ function Spidertron_Pathfinder:request_path2(request_params)
     end
 end
 
+---Pathfinder callback for event on_script_path_request_finished
+---@param event on_script_path_request_finished
 function Spidertron_Pathfinder:on_script_path_request_finished(event)
     local request = global.pathfinder_requests[event.id]
     if request and request.unit then
@@ -171,6 +204,7 @@ function Spidertron_Pathfinder:on_script_path_request_finished(event)
                 log("try_again_later: ABORTED, to many retrys")
             end
         elseif not path then
+            log("on_script_path_request_finished.retry " .. tostring(request.retry))
             if request.retry < 6 then
                 if request.retry == 1 then
                     -- 2. Re-Request with normal  bounding box

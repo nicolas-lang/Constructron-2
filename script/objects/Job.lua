@@ -2,11 +2,13 @@ local Debug = require("__Constructron-2__.script.objects.Debug")
 local custom_lib = require("__Constructron-2__.data.lib.custom_lib")
 
 ---@class Job : Debug
----@field status table<string,uint>
+---@field public id uint
+---@field public status table<string,uint>
+---@field public actions table<string,Action>
+---@field private current_status uint
+---@field private tasks table<uint,Task>
 local Job = {
     class_name = "Job",
-    area = nil,
-    position = nil,
     actions = {
         check_service = require("__Constructron-2__.script.objects.actions.Action_check_service"),
         completed = require("__Constructron-2__.script.objects.actions.Action_completed"),
@@ -44,6 +46,8 @@ setmetatable(
     }
 )
 
+---comment
+---@param obj any
 function Job:new(obj)
     Debug.new(self)
     self:log()
@@ -62,10 +66,13 @@ end
 function Job.init_globals()
     global.Jobs = global.Jobs or {}
 end
+
 -- Class Methods
+
+---Set the job's status
+---@param status string|uint
 function Job:set_status(status)
     self:log()
-
     local text_status
     local parsed_status
     if type(status) == "number" then
@@ -89,6 +96,8 @@ function Job:set_status(status)
     self:log(text_status)
 end
 
+---Get's the Job's current status(name)
+---@return string
 function Job:get_status()
     for k, v in pairs(Job.status) do
         if self:get_status_id() == v then
@@ -97,10 +106,13 @@ function Job:get_status()
     end
 end
 
+---Get's the Job's current status(ID)
+---@return number|uint
 function Job:get_status_id()
     return self.current_status
 end
 
+---Updates the Job and all it's Tasks
 function Job:update()
     self:log()
     --Check all Tasks/entities
@@ -116,7 +128,7 @@ function Job:update()
     end
 end
 
----comment
+---Delete the Job and all dependancies
 function Job:destroy()
     self:log()
     --Check all entities
@@ -132,6 +144,8 @@ function Job:destroy()
     global.Jobs[self.id] = nil
 end
 
+---Addes a Task to the Job
+---@param task Task
 function Job:add_task(task)
     self:log()
     log(serpent.block(self))
@@ -139,6 +153,8 @@ function Job:add_task(task)
     self.active_task = self.active_task or 1
 end
 
+---Assign a Constructron to perform the Job's constructions
+---@param constructron Ctron
 function Job:assign_constructron(constructron)
     self:log()
     if constructron:is_valid() then
@@ -147,6 +163,8 @@ function Job:assign_constructron(constructron)
         self:update_task_positions()
     end
 end
+
+---Update all Task positions based on the assigned contructrons contruction radius
 function Job:update_task_positions()
     if self.constructron and self.constructron:is_valid() then
         for _, task in pairs(self.tasks) do
@@ -154,6 +172,9 @@ function Job:update_task_positions()
         end
     end
 end
+
+---Get the currently active task
+---@return any
 function Job:get_current_task()
     for _, task in ipairs(self.tasks) do --ipairs to ensure ordered processing
         if task:get_completed() ~= true then
@@ -165,6 +186,8 @@ function Job:get_current_task()
     end
 end
 
+---Move to the next task, can mark the previous task completed
+---@param mark_completed any
 function Job:next_task(mark_completed)
     if #(self.tasks) > 0 then
         local task = table.remove(self.tasks, 1)
@@ -175,18 +198,24 @@ function Job:next_task(mark_completed)
     end
 end
 
+---Assign a Service Station to the job
+---@param station any
 function Job:assign_station(station)
     self.station = station
 end
 
+---Unassign the Job's Service Station
 function Job:unassign_station()
     self.station = nil
 end
 
+---Unassign the Job's Constructron
 function Job:clear_constructron()
     self.constructron = nil
 end
 
+---Get all the items required by the Job's Tasks
+---@return table
 function Job:get_items()
     self:log()
     local items = {}
@@ -197,6 +226,8 @@ function Job:get_items()
     return items
 end
 
+---Get the median position over all the Job's Task's
+---@return MapPosition
 function Job:get_position()
     self:log()
     local position = {x = 0, y = 0}

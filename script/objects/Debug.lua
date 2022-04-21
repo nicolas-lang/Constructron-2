@@ -31,17 +31,22 @@ setmetatable(
     }
 )
 
--- Debug Constructor
-function Debug:new(scope) -- luacheck: ignore
+---Constructor
+function Debug:new() -- luacheck: ignore
     --todo: globalize to make it MP safe
     self.debug_messages = {}
 end
 
+---Log to factorio_current.log
+---@see https://wiki.factorio.com/Log_file
+---@param o any msg/object
 function Debug:log(o)
     if self and self.debug then
         local msg = ""
         if type(o) == "string" then
             msg = " " .. o
+        elseif type(o) == "number" then
+            msg = " " .. tostring(o)
         elseif o then
             msg = " " .. serpent.block(o)
         end
@@ -55,6 +60,11 @@ function Debug:log(o)
     end
 end
 
+---Attach a floating text to the entity for a duration
+---@param entity LuaEntity
+---@param message string
+---@param line uint line definition
+---@param ttl uint seconds to display
 function Debug:attach_text(entity, message, line, ttl)
     if self and self.debug then
         if entity and entity.valid then
@@ -88,4 +98,83 @@ function Debug:attach_text(entity, message, line, ttl)
         end
     end
 end
+
+---Draw a circle for a short duration at a specific location
+---@param position MapPosition
+---@param surface LuaSurface
+---@param color Color
+---@param text string
+function Debug:draw_circle(surface, position, color, text, ttl)
+    if self and self.debug then
+        if position then
+            local message = "Circle"
+            rendering.draw_circle {
+                target = position,
+                radius = 0.5,
+                filled = true,
+                surface = surface,
+                time_to_live = 900,
+                color = color
+            }
+            if text then
+                message = message .. "(" .. text .. ")"
+                rendering.draw_text {
+                    text = text,
+                    target = {position.x, position.y - 0.25},
+                    filled = true,
+                    surface = surface,
+                    time_to_live = 900,
+                    alignment = "center",
+                    color = {
+                        r = 255,
+                        g = 255,
+                        b = 255,
+                        a = 255
+                    }
+                }
+            end
+            log("surface " .. (surface.name or surface.index) .. " (x:" .. (position.x) .. ",y:" .. (position.y) .. "):" .. message)
+        end
+    end
+end
+
+---Highlight an Area
+---@param minimum MapPosition
+---@param maximum MapPosition
+---@param surface LuaSurface
+---@param color Color
+function Debug:draw_rectangle (surface, minimum, maximum, color, ttl)
+    if self and self.debug then
+        local message = "rectangle"
+        local inner_color = {
+            r = color.r,
+            g = color.g,
+            b = color.b,
+            a = 0.075
+        }
+
+        rendering.draw_rectangle {
+            left_top = minimum,
+            right_bottom = maximum,
+            filled = true,
+            surface = surface,
+            time_to_live = 600,
+            color = inner_color
+        }
+
+        rendering.draw_rectangle {
+            left_top = minimum,
+            right_bottom = maximum,
+            width = 3,
+            filled = false,
+            surface = surface,
+            time_to_live = 600,
+            color = color
+        }
+
+        log("surface " .. (surface.name or surface.index) .. message)
+        log("minimum:" .. serpent.block(minimum) .. ", maximum:" .. serpent.block(maximum))
+    end
+end
+
 return Debug

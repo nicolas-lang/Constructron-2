@@ -36,15 +36,18 @@ setmetatable(
     }
 )
 
--- Ctron_nuclear_powered Constructor
+---create managed gear, update slot filters, call parent constructor
+---@param entity LuaEntity
 function Ctron_nuclear_powered:new(entity)
-    log("Ctron_nuclear_powered.new")
+    self:log()
     Ctron.new(self, entity)
     self:setup_gear()
     self:update_slot_filters()
 end
 
+---Transfer Power from Nuclear Burner to equippment Grid; also run parent's `tick_update()`
 function Ctron_nuclear_powered:tick_update()
+    self:log()
     Ctron.tick_update(self)
     if self.entity.valid then
         local transfer_efficiency = 0.5
@@ -66,29 +69,36 @@ function Ctron_nuclear_powered:tick_update()
     end
 end
 
+---set items requests to change inventory contents to these exactly items.
+---managed construction robots are inored as they have their own handler
+---@param request_items table <string,number> the items we want
+---@param item_whitelist  table <string,boolean> other items that are also allowed
 function Ctron_nuclear_powered:set_request_items(request_items, item_whitelist)
+    self:log()
     request_items = request_items or {}
     item_whitelist = item_whitelist or {}
     item_whitelist[self.construction_robots.type] = true
     request_items[self.fuel] = (request_items[self.fuel] or 0) + control_lib.get_stack_size(self.fuel) * #(self.entity.burner.inventory)
-    --request_items["construction-robot"] = (request_items["construction-robot"] or 0) + self.robots
     Ctron.set_request_items(self, request_items, item_whitelist)
 end
 
+---enable construction: enable roboports and spawn predefined robots
 function Ctron_nuclear_powered:enable_construction()
     self:log()
     self:update_slot_filters()
     Ctron.enable_construction(self)
     local inventory = self.entity.get_inventory(defines.inventory.spider_trunk)
-    inventory.insert({name = self.construction_robots.type , count = self.construction_robots.count})
+    inventory.insert({name = self.construction_robots.type, count = self.construction_robots.count})
 end
 
+---disable construction: disable roboports and despawn robots
+--- TODO: handle still deployed robots: also drop potentially carried items to the ground and mark them for decosntruction
 function Ctron_nuclear_powered:disable_construction()
     self:log()
     self:update_slot_filters()
     Ctron.disable_construction(self)
     local inventory = self.entity.get_inventory(defines.inventory.spider_trunk)
-    inventory.remove({name = self.construction_robots.type , count = 999})
+    inventory.remove({name = self.construction_robots.type, count = 999})
 end
 
 return Ctron_nuclear_powered

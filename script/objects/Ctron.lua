@@ -10,9 +10,14 @@ local custom_lib = require("__Constructron-2__.data.lib.custom_lib")
 ---@field speed_sticker LuaEntity
 ---@field fuel string
 ---@field construction_enabled boolean
+---@field construction_robots table <string,any>
 ---@field target MapPosition
 ---@field job_id uint
 ---@field managed_equipment table <string,table>
+---@field gear table <uint,string>
+---@field managed_equipment_cols uint
+---@field movement_research uint
+---@field inventory_filters table <string,uint>
 local Ctron = {
     class_name = "Ctron",
     gear = {},
@@ -346,7 +351,8 @@ function Ctron:get_job_id()
     return self.job_id
 end
 
----assigned the constructron to a job
+---assignes the constructron to a job
+---@param job_id string|number
 function Ctron:assign_job(job_id)
     self:log()
     self:attach_text(self.entity, "set_job", self.debug_definition.lines.dynamic, 2)

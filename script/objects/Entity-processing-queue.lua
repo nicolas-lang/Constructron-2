@@ -5,7 +5,7 @@ local Debug = require("__Constructron-2__.script.objects.Debug")
 local Entity_queue = {
     class_name = "Entity_queue",
     max_chunks_per_call = 20,
-    max_entities_per_call = 5000,
+    max_entities_per_call = 1000,
     processing_delay = 60 * 2
 }
 Entity_queue.__index = Entity_queue
@@ -21,8 +21,8 @@ setmetatable(
         end
     }
 )
----comment
----@param callback function
+---Create a new Entity_queue instance
+---@param callback function `callback´(entity, force)` is called when a queued LuaEntity is released from the queue for processing`
 function Entity_queue:new(callback)
     Debug.new(self)
     self.entity_processing_callback = function(_, entity, force)
@@ -32,8 +32,10 @@ function Entity_queue:new(callback)
     end
 end
 
----comment
+---Setup globals to be used by Entity_queue
 function Entity_queue.init_globals()
+    --global.entity_processing_queue = {}
+    --global.chunk_processing_queue = {}
     global.entity_processing_queue = global.entity_processing_queue or {}
     global.chunk_processing_queue = global.chunk_processing_queue or {}
 end
@@ -86,6 +88,18 @@ end
 ---@see rescan_all_surfaces
 ---@return boolean
 function Entity_queue:process_chunk_queue()
+    ---@param entity LuaEntity
+    ---@return LuaForce
+    local function get_deconstructring_force(entity)
+        if entity.force and entity.force.name ~= "neutral" then
+            return entity.force
+        end
+        for _, force in pairs(game.forces) do
+            if entity.is_registered_for_deconstruction(force) then
+                return force
+            end
+        end
+    end
     self:log()
     local c = 0
     local index = next(global.chunk_processing_queue)
@@ -94,8 +108,8 @@ function Entity_queue:process_chunk_queue()
         local filters = {
             {type = "entity", filter = {type = "entity-ghost"}},
             {type = "entity", filter = {type = "tile-ghost"}},
-            {type = "entity", filter = {to_be_deconstructed = true}},
             {type = "entity", filter = {to_be_upgraded = true}},
+            {type = "entity", filter = {to_be_deconstructed = true}, force_fix = true},
             {type = "tile", filter = {to_be_deconstructed = true}}
         }
         if not global.entity_processing_queue[game.tick] then
@@ -115,12 +129,15 @@ function Entity_queue:process_chunk_queue()
                     objects = surface.find_tiles_filtered(filter_def.filter)
                 end
                 for object in objects do
-                    local max_index = #(global.entity_processing_queue[game.tick])
-                    -- TODO: neutral deconstructions have no force, we probably need to cache from initial decon event....
-                    -- as a workaround we use the player for now as multi-force compatitbilty is not planned for the initial version
-                    local force = object.force or game.players[1].force
-                    global.entity_processing_queue[game.tick][max_index + 1] = {entity = object, force = force}
-
+                    if object.valid then
+                        local max_index = #(global.entity_processing_queue[game.tick])
+                        local force = object.force
+                        if filter_def.force_fix then
+                            force = get_deconstructring_force(object)
+                        end
+                        assert(force, "entity has no force") -- remove this for release version
+                        global.entity_processing_queue[game.tick][max_index + 1] = {entity = object, force = force}
+                    end
                 end
             end
         end
@@ -131,8 +148,7 @@ function Entity_queue:process_chunk_queue()
     return (c > 0)
 end
 
----queue entity
----TODO: also save and queue entity force --> obj {entity,force}
+---Add a new entity to the queue
 ---@param entity LuaEntity
 ---@param force LuaForce
 ---@param tick int
@@ -158,7 +174,7 @@ function Entity_queue:queue_entity(entity, force, tick, build_type)
     end
 end
 
----queue chunk
+---queue a chunk for scanning
 ---@param chunk table
 function Entity_queue:queue_chunk(chunk)
     self:log()

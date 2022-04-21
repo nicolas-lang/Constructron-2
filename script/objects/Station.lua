@@ -1,6 +1,9 @@
 local Debug = require("__Constructron-2__.script.objects.Debug")
 
 ---@class Station : Debug
+---@field public id uint
+---@field private entity LuaEntity
+---@field private registration_id uint
 local Station = {
     class_name = "Station",
     -- <base game spidertron entity unit_number used as PK for everything>
@@ -46,8 +49,9 @@ function Station:new(entity)
     end
 end
 
--- Generic Type based initialization
+--- Generic Type based initialization
 function Station.init_globals()
+    global.logistic_networks = global.logistic_networks or {}
     global.service_stations = global.service_stations or {}
     global.service_stations.entities = global.service_stations.entities or {}
     global.service_stations.entity_registration = global.service_stations.entity_registration or {}
@@ -57,17 +61,24 @@ function Station.get_registered_entity(entity_registration_number)
     return global.service_stations.entity_registration[entity_registration_number]
 end
 -- Class Methods
+
+---Destructor
 function Station:destroy()
     self:log()
     global.service_stations.entity_registration[self.registration_id] = nil
     global.service_stations.entities[self.unit_number] = nil
 end
 
+---Is the Station still valid (lua-object + entity)
+---@return boolean
 function Station:is_valid()
     self:log()
     return (self.entity and self.entity.valid)
 end
 
+---Check if a set of items is avaliable at this station
+---@param requested_items table<string,number>
+---@return table<string,number> avaliable_items
 function Station:get_inventory(requested_items)
     self:log()
     local items = {}
@@ -79,6 +90,8 @@ function Station:get_inventory(requested_items)
     return items
 end
 
+---Where is this station
+---@return {position:MapPosition, surface:LuaSurface}
 function Station:get_position()
     self:log()
     if self:is_valid() then
@@ -89,6 +102,9 @@ function Station:get_position()
     end
 end
 
+---How far is position away (assuming same surface)
+---@param position MapPosition
+---@return number distance
 function Station:distance_to(position)
     self:log()
     if self:is_valid() and position then
@@ -96,10 +112,12 @@ function Station:distance_to(position)
     end
 end
 
+--[[
+---logistic_networks have no specific ID we create our own... is this desync safe ?
+---@return uint logistic_network_id
 function Station:get_logistic_network_id()
     self:log()
     if self:is_valid() then
-        global.logistic_networks = global.logistic_networks or {}
         for id, n in pairs(global.logistic_networks) do
             if n == self.entity.logistic_network then
                 return id
@@ -110,5 +128,6 @@ function Station:get_logistic_network_id()
         return #(global.logistic_networks)
     end
 end
+]]
 
 return Station

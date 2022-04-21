@@ -18,10 +18,4 @@ setmetatable(
     }
 )
 
--- Task_delivery Constructor
-function Task_delivery:new(obj)
-    self:log()
-    Task.new(self, obj)
-end
-
 return Task_delivery

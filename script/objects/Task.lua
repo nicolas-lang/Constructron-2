@@ -24,7 +24,8 @@ setmetatable(
         end
     }
 )
--- Task Constructor
+
+---Constructor
 function Task:new(obj)
     Debug.new(self)
     self:log()
@@ -39,22 +40,28 @@ function Task:new(obj)
     self.current_position = 1
 end
 
--- Generic Type based initialization
+---Generic Type based initialization
 function Task.init_globals()
     global.tasks = global.tasks or {}
 end
 
 -- Class Methods
+
+--Destructor
 function Task:destroy()
     self:log()
     global.tasks[self.id] = nil
 end
 
+---Add a new entity to the task'S construction targets
+---@param entity LuaEntity
 function Task:add_entity(entity)
     self:log()
     self.entities[control_lib.get_entity_key(entity)] = entity
 end
 
+---Get the next/current position where things are to be performed
+---@return MapPosition
 function Task:get_next_position()
     self:log()
     if self.current_position <= custom_lib.table_length(self.positions) then
@@ -62,13 +69,19 @@ function Task:get_next_position()
     end
 end
 
+---Iterate to the next position
 function Task:next_position()
     self.current_position = self.current_position + 1
 end
+
+---Get median position of the Task, will be within 32x32 of all entities as a Task represents at most a full chunk
 function Task:get_position()
     self:get_median_position(self.entities)
 end
 
+---Get median position for the group of Entites
+---@param entities table<uint,LuaEntity>
+---@return MapPosition median_position
 function Task:get_median_position(entities)
     self:log()
     local position = {x = 0, y = 0}
@@ -91,7 +104,7 @@ function Task:get_median_position(entities)
     end
 end
 
----comment
+---Create a Position mesh with a specific split for rows and cols
 ---@param split float
 function Task:update_positions(split)
     self:log()
@@ -108,7 +121,7 @@ function Task:update_positions(split)
     local chunk_base
     for _, e in pairs(self.entities) do
         if e.valid then
-            chunk_base = chunk_base or {x = math.floor(e.position.x / 32)*32, y = math.floor(e.position.y / 32)*32}
+            chunk_base = chunk_base or {x = math.floor(e.position.x / 32) * 32, y = math.floor(e.position.y / 32) * 32}
             local index = {x = math.ceil(math.abs((e.position.x - chunk_base.x) / split)), y = math.ceil(math.abs((e.position.y - chunk_base.y) / split))}
             self:log("entity-index" .. serpent.block(index))
             grid_positions[index.x] = grid_positions[index.x] or {}
@@ -137,6 +150,8 @@ function Task:update_positions(split)
     self.current_position = 1
 end
 
+---Required number of required items for the task
+---@return table<string, int>
 function Task:get_items()
     self:log()
     if next(self.items) then
@@ -144,6 +159,7 @@ function Task:get_items()
     end
 end
 
+---Required number of required item-stacks/inventory-slots for the task (rounded up)
 function Task:get_item_stacks()
     self:log()
     if next(self.items) then
@@ -155,6 +171,8 @@ function Task:get_item_stacks()
     end
 end
 
+---Get total number of required item-stacks/inventory-slots for the task
+---@return number
 function Task:get_stack_count()
     self:log()
     if next(self.items) then
@@ -166,16 +184,19 @@ function Task:get_stack_count()
     end
 end
 
+---Mark the Task completed
 function Task:mark_completed()
     self:log()
     self.completed = true
 end
 
+---Check if the Task is completed
 function Task:get_completed()
     self:log()
     return self.completed
 end
 
+---Update the Task: required items, complete-state
 function Task:update()
     self:log()
     local items = {}
@@ -198,7 +219,9 @@ function Task:update()
     self.items = items
 end
 
----comment
+---Check which items are required to perform construction on the Tasks Entities
+---TODO: port creative-mod fix from continued: if a item is hidden, check if a non hidden, enabled recipe is present to create it.
+---TODO: Implement Requester Chest
 ---@param entity LuaEntity
 ---@return table
 function Task:get_required_items(entity)
@@ -217,7 +240,7 @@ function Task:get_required_items(entity)
 
     if entity and entity.valid then
         local items = {}
-        if entity.type == "tile-ghost" or entity.type == "entity-ghost" then
+        if (entity.type == "tile-ghost" or entity.type == "entity-ghost") and entity.is_registered_for_construction() == false then
             local item_name = item_to_place_this(entity.ghost_prototype.items_to_place_this)
             if item_name then
                 items[item_name] = (items[item_name] or 0) + 1
@@ -234,7 +257,7 @@ function Task:get_required_items(entity)
                     end
                 end
             end
-        elseif entity.to_be_upgraded() then
+        elseif entity.to_be_upgraded() and entity.is_registered_for_upgrade() then
             local item_name = item_to_place_this(entity.get_upgrade_target().items_to_place_this)
             if item_name then
                 items[item_name] = (items[item_name] or 0) + 1
@@ -245,13 +268,13 @@ function Task:get_required_items(entity)
             end
         elseif entity.type == "cliff" then
             items["cliff-explosives"] = (items["cliff-explosives"] or 0) + 1
-        elseif entity.type == "item-request-proxy" then
+        elseif entity.type == "item-request-proxy" and entity.is_registered_for_construction() then
             for name, count in pairs(entity.item_requests) do
                 if not game.item_prototypes[name].has_flag("hidden") then
                     items[name] = (items[name] or 0) + count
                 end
             end
-        elseif entity.get_health_ratio() < 0.95 then
+        elseif entity.get_health_ratio() < 0.95 and entity.is_registered_for_repair() then
             local missing = (entity.health / entity.get_health_ratio()) * (1 - entity.get_health_ratio())
             items["repair-pack"] = (items["repair-pack"] or 0) + (missing / 300) * 1.3 -- bring 30% extra tools
         elseif entity.name == "ctron-buffer-chest" then

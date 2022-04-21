@@ -1,9 +1,8 @@
 ﻿local Ctron = require("__Constructron-2__.script.objects.Ctron")
 
-
 ---@class Ctron_classic : Ctron
 local Ctron_classic = {
-    class_name = "Ctron_classic",
+    class_name = "Ctron_classic"
 }
 Ctron_classic.__index = Ctron_classic
 
@@ -19,14 +18,9 @@ setmetatable(
     }
 )
 
-function Ctron_classic:new(entity)
-    log("Ctron_steam_powered.new")
-    Ctron.new(self, entity)
-end
-
--- Class Methods
-function Ctron_classic:setup_gear() -- luacheck: ignore
-    -- we do not want to use a gear template
+--- setup_gear() is shadowed for `Ctron_classic` because  we do not want to use a gear template
+function Ctron_classic:setup_gear()
+    self:log()
 end
 
 return Ctron_classic

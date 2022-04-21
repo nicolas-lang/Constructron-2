@@ -1,6 +1,5 @@
 local Task = require("__Constructron-2__.script.objects.Task")
 
--- class Type Task_construction, nil members exist just to describe fields
 ---@class Task_construction : Task
 local Task_construction = {
     class_name = "task_construction"
@@ -18,11 +17,5 @@ setmetatable(
         end
     }
 )
-
--- Task_construction Constructor
-function Task_construction:new(obj)
-    self:log()
-    Task.new(self, obj)
-end
 
 return Task_construction

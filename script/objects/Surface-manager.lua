@@ -35,7 +35,7 @@ setmetatable(
     }
 )
 
----comment
+---Constructor
 ---@param surface LuaSurface
 ---@param force LuaForce
 function Surface_manager:new(surface, force)
@@ -69,19 +69,19 @@ function Surface_manager:new(surface, force)
     end
 end
 
----comment
+--- Generic Type based initialization
 function Surface_manager.init_globals()
     global.surface_managers = global.surface_managers or {}
 end
 
----comment
+---Static Method to get the chunk x,y a MapPositions is located in
 ---@param position MapPosition
----@return number
+---@return uint, uint
 function Surface_manager.chunk_from_position(position)
     return math.floor((position.x or position[1]) / 32), math.floor((position.y or position[2]) / 32)
 end
 
----comment
+---Destructor
 function Surface_manager:destroy()
     self:log()
     -- ToDo call destroy for  all managed entities on force/surface
@@ -90,7 +90,7 @@ function Surface_manager:destroy()
     end
 end
 
----comment
+---Are we still valid (lua-object + surface)
 ---@return boolean
 function Surface_manager:valid()
     self:log()
@@ -106,7 +106,7 @@ end
 --  Surface Processing
 -------------------------------------------------------------------------------
 
----comment
+---Update all relevant managed things on this surface
 function Surface_manager:tick_update()
     self:log()
     for key, constructron in pairs(self.constructrons) do
@@ -127,7 +127,7 @@ function Surface_manager:tick_update()
     end
 end
 
----comment
+---Get stats for managed things on this surface
 ---@return table
 function Surface_manager:get_stats()
     self:log()
@@ -136,28 +136,28 @@ function Surface_manager:get_stats()
     }
 end
 
----comment
+---Assign a new contructron to this surface
 ---@param constructron Ctron
 function Surface_manager:add_constructron(constructron)
     self:log(constructron.unit_number)
     self.constructrons[constructron.unit_number] = constructron
 end
 
----comment
+---Assign a new service-station  to this surface
 ---@param station Station
 function Surface_manager:add_station(station)
     self:log(station.unit_number)
     self.stations[station.unit_number] = station
 end
 
----
+---Remove a contructron from this surface
 ---@param constructron LuaEntity
 function Surface_manager:remove_constructron(constructron)
     self:log(constructron.unit_number)
     self.constructrons[constructron.unit_number] = nil
 end
 
----comment
+--- NOT IMPLEMENTED
 ---@param constructron_data table
 function Surface_manager:constructron_destroyed(constructron_data) -- luacheck: ignore
     self:log()
@@ -167,21 +167,21 @@ function Surface_manager:constructron_destroyed(constructron_data) -- luacheck: 
     --end
 end
 
----comment
+---Remove a service-station from this surface
 ---@param station LuaEntity
 function Surface_manager:remove_station(station)
     self:log(station.unit_number)
     self.stations[station.unit_number] = nil
 end
 
----comment
+--- NOT IMPLEMENTED
 ---@param station_data table
 function Surface_manager:station_destroyed(station_data) -- luacheck: ignore
     self:log()
     --self:remove_station(...)
 end
 
----comment
+---Get an idle constructron on this surface
 ---@return Ctron
 function Surface_manager:get_free_constructron() -- luacheck: ignore
     self:log()
@@ -192,7 +192,7 @@ function Surface_manager:get_free_constructron() -- luacheck: ignore
     end
 end
 
----Stations are selected based on a score: #1 number of different avaliable items #2 distance to target_position #3 random variance
+---Get a Station; The Stations are selected based on a score: #1 number of different avaliable items #2 distance to target_position #3 random variance
 ---@param items table
 ---@param target_position MapPosition
 ---@return Station
@@ -235,7 +235,7 @@ function Surface_manager:get_station(items, target_position, constructron_positi
             -- #3 on distance to jobsite or constructron
             local distance = station:distance_to(target_position) + station:distance_to(constructron_position)
             score[station.id] = score[station.id] + (0.3 - 0.3 * distance / max_distance)
-            
+
             log(score[station.id])
         end
     end
@@ -266,7 +266,8 @@ end
 -------------------------------------------------------------------------------
 --  Entity Processing
 -------------------------------------------------------------------------------
----comment
+
+---Process a LuaEntity requireing some kind of constructron action
 ---@param entity LuaEntity
 function Surface_manager:process_entity(entity)
     self:log()
@@ -280,7 +281,7 @@ function Surface_manager:process_entity(entity)
     end
 end
 
----comment
+---Assign a LuaEntity to a specific chunk group, to be processed later
 ---@param entity LuaEntity
 function Surface_manager:register_entity(entity)
     self:log()
@@ -298,7 +299,7 @@ function Surface_manager:register_entity(entity)
     end
 end
 
----comment
+---Remove a LuaEntity from a specific chunk group
 ---@param entity LuaEntity
 function Surface_manager:unregister_entity(entity) -- luacheck: ignore
     self:log()
@@ -312,7 +313,7 @@ function Surface_manager:unregister_entity(entity) -- luacheck: ignore
     end
 end
 
----comment
+---Create a new construction Task on this surface
 ---@param task Task
 function Surface_manager:add_task(task)
     self:log()
@@ -320,7 +321,7 @@ function Surface_manager:add_task(task)
     self.tasks[#(self.tasks) + 1] = task
 end
 
----comment
+---Create construction Tasks from entities saved in chunk groups
 ---@param limit uint
 ---@return uint
 function Surface_manager:assign_tasks(limit)
@@ -365,7 +366,8 @@ end
 -------------------------------------------------------------------------------
 --  Job Processing
 -------------------------------------------------------------------------------
----comment
+
+---Main Worker: FSM for Job processing
 function Surface_manager:run_jobs()
     self:log()
     for key, job in pairs(self.jobs) do
@@ -388,7 +390,7 @@ function Surface_manager:run_jobs()
     end
 end
 
----comment
+---Create new Jobs from unassigned Tasks
 ---@param limit uint
 ---@return uint
 function Surface_manager:assign_jobs(limit)
