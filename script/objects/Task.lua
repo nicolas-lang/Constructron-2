@@ -2,7 +2,7 @@ local custom_lib = require("__Constructron-2__.data.lib.custom_lib")
 local control_lib = require("__Constructron-2__.script.lib.control_lib")
 local Debug = require("__Constructron-2__.script.objects.Debug")
 
----@class Task : Debug
+---@class Task : Debug Abstract
 ---@field positions table<uint,MapPosition>
 ---@field current_position uint
 ---@field entities table <uint,LuaEntity>
@@ -226,7 +226,7 @@ end
 ---@return table
 function Task:get_required_items(entity)
     self:log()
-    local function item_to_place_this(items_to_place_this)
+    local function item_to_place(items_to_place_this)
         self:log()
         if not items_to_place_this then
             return
@@ -240,13 +240,13 @@ function Task:get_required_items(entity)
 
     if entity and entity.valid then
         local items = {}
-        if (entity.type == "tile-ghost" or entity.type == "entity-ghost") and entity.is_registered_for_construction() == false then
-            local item_name = item_to_place_this(entity.ghost_prototype.items_to_place_this)
+        if (entity.type == "tile-ghost" or entity.type == "entity-ghost") and entity.is_registered_for_construction() then
+            local item_name = item_to_place(entity.ghost_prototype.items_to_place_this)
             if item_name then
                 items[item_name] = (items[item_name] or 0) + 1
             end
         elseif entity.to_be_deconstructed() then
-            local item_name = item_to_place_this(entity.prototype.items_to_place_this)
+            local item_name = item_to_place(entity.prototype.items_to_place_this)
             if item_name then
                 items[item_name] = (items[item_name] or 0) - 1
             elseif entity.prototype.mineable_properties and entity.prototype.mineable_properties.minable then
@@ -258,11 +258,11 @@ function Task:get_required_items(entity)
                 end
             end
         elseif entity.to_be_upgraded() and entity.is_registered_for_upgrade() then
-            local item_name = item_to_place_this(entity.get_upgrade_target().items_to_place_this)
+            local item_name = item_to_place(entity.get_upgrade_target().items_to_place_this)
             if item_name then
                 items[item_name] = (items[item_name] or 0) + 1
             end
-            item_name = item_to_place_this(entity.prototype.items_to_place_this)
+            item_name = item_to_place(entity.prototype.items_to_place_this)
             if item_name then
                 items[item_name] = (items[item_name] or 0) - 1
             end
@@ -270,11 +270,12 @@ function Task:get_required_items(entity)
             items["cliff-explosives"] = (items["cliff-explosives"] or 0) + 1
         elseif entity.type == "item-request-proxy" and entity.is_registered_for_construction() then
             for name, count in pairs(entity.item_requests) do
-                if not game.item_prototypes[name].has_flag("hidden") then
-                    items[name] = (items[name] or 0) + count
+                local item = item_to_place(name)
+                if item then
+                    items[item] = (items[item] or 0) + count
                 end
             end
-        elseif entity.get_health_ratio() < 0.95 and entity.is_registered_for_repair() then
+        elseif entity.is_entity_with_health and entity.get_health_ratio() < 0.95 and entity.is_registered_for_repair() then
             local missing = (entity.health / entity.get_health_ratio()) * (1 - entity.get_health_ratio())
             items["repair-pack"] = (items["repair-pack"] or 0) + (missing / 300) * 1.3 -- bring 30% extra tools
         elseif entity.name == "ctron-buffer-chest" then

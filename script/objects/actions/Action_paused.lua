@@ -19,11 +19,6 @@ setmetatable(
         end
     }
 )
--- Action_paused Constructor
-function Action_paused:new(surfacemanager)
-    self:log()
-    Action.new(self, surfacemanager)
-end
 
 -- Class Methods
 function Action_paused:handleStateTransition(job)

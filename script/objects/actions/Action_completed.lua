@@ -21,11 +21,6 @@ setmetatable(
         end
     }
 )
--- Action_completed Constructor
-function Action_completed:new(surfacemanager)
-    self:log()
-    Action.new(self, surfacemanager)
-end
 
 -- Class Methods
 ---comment

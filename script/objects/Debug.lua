@@ -1,6 +1,6 @@
 local util = require("util")
 local custom_lib = require("__Constructron-2__.data.lib.custom_lib")
----@class Debug
+---@class Debug Abstract
 ---@field class_name string
 ---@field debug boolean
 ---@field debug_definition table<string,table<string,int>>

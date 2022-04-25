@@ -390,14 +390,22 @@ script.on_event(
 -------------------------------------------------------------------------------
 -- entity queue events
 -------------------------------------------------------------------------------
-script.on_event(
+for _, ev_def in pairs(
     {
         ev.on_built_entity,
         ev.script_raised_built,
         ev.on_robot_built_entity
-    },
-    on_built_entity
-)
+    }
+) do
+    script.on_event(
+        ev_def,
+        on_built_entity,
+        {
+            {filter = "ghost", mode = "or"},
+            {filter = "type", type = "item-request-proxy", mode = "or"}
+        }
+    )
+end
 
 script.on_event(ev.on_post_entity_died, on_post_entity_died)
 
@@ -441,8 +449,10 @@ script.on_event(
 ---pauses statemachine and queue processing
 ---only pauses statemachine and queue processing, the initial event capture is not paused
 ---on unpause every ctron might have it's current task run into timeout
+--@param _ LuaPlayer
+--@param _ table<uint,string>
 ---@return boolean
-local function toggle_pause()
+local function toggle_pause(_, _)
     log("control:toggle_pause")
     global.pause_processing = not global.pause_processing
     game.print("paused: " .. tostring(global.pause_processing))
@@ -452,7 +462,9 @@ end
 -------------------------------------------------------------------------------
 --- Resets the queues, And requeues all chunks on all surfaces to be scanned
 --- neutral deconstructions for nond efault force  might have issues being requeued
-local function rescan_all_surfaces()
+--@param _ LuaPlayer
+--@param _ table<uint,string>
+local function rescan_all_surfaces(_, _)
     log("control:rescan_all_surfaces")
     global.chunk_processing_queue = {}
     global.entity_processing_queue = {}
@@ -468,7 +480,9 @@ end
 -------------------------------------------------------------------------------
 --- full hardreset of everything
 --- probably not desync safe.
-local function reset()
+--@param _ LuaPlayer
+--@param _ table<uint,string>
+local function reset(_, _)
     log("control:reset")
     game.print("Constructron: !!! hard reset !!!", {r = 1, g = 0.2, b = 0.2})
     for k, _ in pairs(global) do
@@ -491,8 +505,10 @@ end
 
 -------------------------------------------------------------------------------
 ---get stats from all surface managers and group them
+--@param _ LuaPlayer
+--@param _ table<uint,string>
 ---@return table
-local function get_stats()
+local function get_stats(_, _)
     log("control:get_stats")
     local stats = {}
     for force_index, _ in pairs(surface_managers) do
@@ -523,9 +539,13 @@ commands.add_command(
     "/ctron rescan|reset|pause",
     function(param)
         log("/ctron " .. (param.parameter or ""))
-        --local player = game.players[param.player_index]
-        if param.parameter and ctron_commands[param.parameter] then
-            ctron_commands[param.parameter]()
+        if param.parameter then
+            local player = game.players[param.player_index]
+            local params = custom_lib.string_split(param.parameter, " ")
+            local command = table.remove(params, 1)
+            if command and ctron_commands[command] then
+                ctron_commands[command](player, params)
+            end
         end
     end
 )

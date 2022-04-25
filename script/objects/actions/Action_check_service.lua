@@ -19,11 +19,6 @@ setmetatable(
         end
     }
 )
--- Action_check_service Constructor
-function Action_check_service:new(surfacemanager)
-    self:log()
-    Action.new(self, surfacemanager)
-end
 
 -- Class Methods
 function Action_check_service:handleStateTransition(job)

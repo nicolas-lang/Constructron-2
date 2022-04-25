@@ -183,6 +183,9 @@ function Spidertron_Pathfinder:request_path2(request_params)
         request.request_tick = game.tick -- not used by the factorio-pathfinder
 
         --log("new pathign request" .. serpent.block(request))
+        if request.force.is_pathfinder_busy() then
+            log("warning, pathfinder for force <" .. request.force.name .. "> is busy, request might be dropped")
+        end
         local request_id = position.surface.request_path(request)
         global.pathfinder_requests[request_id] = request
     end

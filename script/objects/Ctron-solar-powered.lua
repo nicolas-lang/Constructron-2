@@ -84,15 +84,17 @@ function Ctron_solar_powered:status_update()
 
 end
 
-
+---set items requests to change inventory contents to these exactly items.
+---managed construction robots are inored as they have their own handler
+---@param request_items table <string,number> the items we want
+---@param item_whitelist  table <string,boolean> other items that are also allowed
 function Ctron_solar_powered:set_request_items(request_items, item_whitelist)
-    request_items = request_items or {}
     item_whitelist = item_whitelist or {}
     item_whitelist[self.construction_robots.type] = true
     Ctron.set_request_items(self, request_items, item_whitelist)
 end
 
-
+---enable construction: enable roboports and spawn predefined robots
 function Ctron_solar_powered:enable_construction()
     self:log()
     self:update_slot_filters()
@@ -101,6 +103,8 @@ function Ctron_solar_powered:enable_construction()
     inventory.insert({name = self.construction_robots.type , count = self.construction_robots.count})
 end
 
+---disable construction: disable roboports and despawn robots
+--- TODO: handle still deploy robots: also drop potentially carried items to the ground and mark them for deconstruction
 function Ctron_solar_powered:disable_construction()
     self:log()
     self:update_slot_filters()

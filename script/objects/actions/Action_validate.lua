@@ -19,11 +19,6 @@ setmetatable(
         end
     }
 )
--- Action_validate Constructor
-function Action_validate:new(surfacemanager)
-    self:log()
-    Action.new(self, surfacemanager)
-end
 
 -- Class Methods
 function Action_validate:handleStateTransition(job)

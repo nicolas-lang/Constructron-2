@@ -3,7 +3,7 @@ local Debug = require("__Constructron-2__.script.objects.Debug")
 --local util = require("__core__.lualib.util")
 local custom_lib = require("__Constructron-2__.data.lib.custom_lib")
 
----@class Ctron : Debug
+---@class Ctron : Debug Abstract
 ---@field entity LuaEntity
 ---@field status table<string, number>
 ---@field pathfinder Spidertron_Pathfinder

@@ -19,11 +19,6 @@ setmetatable(
         end
     }
 )
--- Action_failed Constructor
-function Action_failed:new(surfacemanager)
-    self:log()
-    Action.new(self, surfacemanager)
-end
 
 -- Class Methods
 function Action_failed:handleStateTransition(job)

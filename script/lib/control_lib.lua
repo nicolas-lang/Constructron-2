@@ -1,13 +1,23 @@
 local me = {}
 
+---Distance between two map positions on the same surface
+---@param position1 MapPosition
+---@param position2 MapPosition
+---@return number distance
 me.distance_between = function(position1, position2)
     return math.sqrt((position1.x - position2.x) ^ 2 + (position1.y - position2.y) ^ 2)
 end
 
+---Get an item's stack-size
+---@param item_name string
+---@return uint
 me.get_stack_size = function(item_name)
     return game.item_prototypes[item_name].stack_size
 end
 
+---Workaround to get pseudo-unique integer keys for entities without unit number
+---@param entity LuaEntity
+---@return int
 me.get_entity_key = function(entity)
     if entity and entity.valid then
         local key = entity.unit_number

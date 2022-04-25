@@ -82,6 +82,7 @@ function Ctron_rocket_powered:set_request_items(request_items, item_whitelist)
 end
 
 --- ignore pathfinder, we can fly
+---@param target MapPosition
 function Ctron_rocket_powered:go_to(target)
     self:log()
     if self:is_valid() and target then

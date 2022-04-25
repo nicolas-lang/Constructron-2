@@ -19,11 +19,6 @@ setmetatable(
         end
     }
 )
--- Action_start Constructor
-function Action_start:new(surfacemanager)
-    self:log()
-    Action.new(self, surfacemanager)
-end
 
 -- Class Methods
 function Action_start:handleStateTransition(job)
