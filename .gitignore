@@ -49,3 +49,9 @@ luac.out
 Thumbs.*
 *.db
 .vscode/launch.json
+
+graphics/constructron/.gitignore
+script/lib/debug_lib.lua
+script/objects/Class.lua
+script/lib/middleclass.lua
+script/lib/*.txt
