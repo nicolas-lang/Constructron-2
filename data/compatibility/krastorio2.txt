@@ -1,3 +1,4 @@
+-- TODO: check which gear we want to allow in each constructron, probably only "universal-equipment"
 if mods["Krastorio2"] then
     local spider = data.raw["spider-vehicle"]["constructron"]
     if spider then

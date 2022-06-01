@@ -2,7 +2,16 @@
 -- local color_lib = require("__Constructron-2__.script.lib.color_lib")
 local control_lib = require("__Constructron-2__.script.lib.control_lib")
 local cust_lib = require("__Constructron-2__.data.lib.custom_lib")
-local collision_mask_util_extended = require("__Constructron-2__.script.lib.collision-mask-util-control")
+
+---@type CollisionMaskLayer
+local spaceship_collision_layer
+---@type CollisionMaskLayer
+local empty_space_collision_layer
+if game.active_mods["space-exploration"] then
+    local collision_mask_util_extended = require("__space-exploration__.collision-mask-util-extended.control.collision-mask-util-control")
+    spaceship_collision_layer = collision_mask_util_extended.get_named_collision_mask("moving-tile")
+    empty_space_collision_layer = collision_mask_util_extended.get_named_collision_mask("empty-space-tile")
+end
 
 ---@class Spidertron_Pathfinder
 ---@field clean_linear_path_enabled boolean
@@ -148,8 +157,6 @@ function Spidertron_Pathfinder:request_path2(request_params)
     log("request_path2")
     local pathing_collision_mask = {"water-tile", "consider-tile-transitions", "colliding-with-tiles-only", "not-colliding-with-itself"}
     if game.active_mods["space-exploration"] then
-        local spaceship_collision_layer = collision_mask_util_extended.get_named_collision_mask("moving-tile")
-        local empty_space_collision_layer = collision_mask_util_extended.get_named_collision_mask("empty-space-tile")
         table.insert(pathing_collision_mask, spaceship_collision_layer)
         table.insert(pathing_collision_mask, empty_space_collision_layer)
     end

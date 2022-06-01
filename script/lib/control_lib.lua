@@ -8,11 +8,18 @@ me.distance_between = function(position1, position2)
     return math.sqrt((position1.x - position2.x) ^ 2 + (position1.y - position2.y) ^ 2)
 end
 
+
+---@type table<string,uint>
+me.stack_cache = {}
+
 ---Get an item's stack-size
 ---@param item_name string
 ---@return uint
 me.get_stack_size = function(item_name)
-    return game.item_prototypes[item_name].stack_size
+    if not me.stack_cache[item_name] then
+        me.stack_cache[item_name] = game.item_prototypes[item_name].stack_size
+    end
+    return me.stack_cache[item_name]
 end
 
 ---Workaround to get pseudo-unique integer keys for entities without unit number

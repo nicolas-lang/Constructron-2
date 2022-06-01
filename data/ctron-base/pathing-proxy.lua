@@ -1,7 +1,7 @@
-local collision_mask_util_extended = require("__Constructron-2__.data.lib.collision-mask-util-extended")
+--- @type CollisionMaskWithFlags
 local pathing_collision_mask = {"water-tile", "colliding-with-tiles-only", "not-colliding-with-itself"}
-
 if mods["space-exploration"] then
+    local collision_mask_util_extended = require("__space-exploration__.collision-mask-util-extended.data.collision-mask-util-extended")
     local spaceship_collision_layer = collision_mask_util_extended.get_named_collision_mask("moving-tile")
     local empty_space_collision_layer = collision_mask_util_extended.get_named_collision_mask("empty-space-tile")
     table.insert(pathing_collision_mask, spaceship_collision_layer)

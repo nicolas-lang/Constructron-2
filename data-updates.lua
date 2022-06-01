@@ -1,3 +1,4 @@
+log(serpent.block(data.raw["spider-vehicle"]["ctron-classic"]))
 local custom_lib = require("__Constructron-2__.data.lib.custom_lib")
 
 for _, category in pairs(data.raw) do --limit loop
